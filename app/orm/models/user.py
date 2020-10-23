@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session
 from typing import Any, Dict, Optional, Union
 from ..base import Base, CRUDManager
@@ -16,6 +16,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
+
+    def get_user_id(self):
+        return self.id
 
 
 class UserManager(CRUDManager[User, UserCreate, UserUpdate]):
