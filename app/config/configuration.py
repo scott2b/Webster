@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
+    SESSION_COOKIE: str = 'session'
+    SESSION_EXPIRE_SECONDS: int = 60 * 60 * 24 * 10
+    SESSION_SAME_SITE: str = 'lax' # lax, strict, or none
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     SERVER_NAME: str
     SERVER_HOST: AnyHttpUrl

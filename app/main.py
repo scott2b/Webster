@@ -1,4 +1,3 @@
-import databases
 from starlette.applications import Starlette
 from starlette.authentication import AuthenticationBackend, AuthCredentials, SimpleUser
 from starlette.exceptions import HTTPException
@@ -6,42 +5,12 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import PlainTextResponse, HTMLResponse, RedirectResponse
-from starlette.routing import Route, Mount, WebSocketRoute
+from starlette.responses import JSONResponse
+from starlette.routing import Route, Mount, WebSocketRoute, Router
 from starlette.staticfiles import StaticFiles
 from .config import settings
-
-
+from .api import app as api_app
 from . import orm
-
-
-#database = databases.Database(settings.SQLALCHEMY_DATABASE_URI)
-
-from typing import Generator
-
-def get_db() -> Generator:
-    try:
-        db = orm.SessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-
-#def auth(request):
-#    user = orm.users.authenticate(
-#        database, email=form_data.username, password=form_data.password
-#    )
-#    if not user:
-#        raise HTTPException(status_code=400, detail="Incorrect email or password")
-#    elif not orm.users.is_active(user):
-#        raise HTTPException(status_code=400, detail="Inactive user")
-#    access_token_expires = timedelta(minutes=config.settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-#    return {
-#        "access_token": auth.create_access_token(
-#            user.id, expires_delta=access_token_expires
-#        ),
-#        "token_type": "bearer",
-#    }
 
 
 class SessionAuthBackend(AuthenticationBackend):
@@ -92,31 +61,36 @@ def user_me(request):
     username = "John Doe"
     return PlainTextResponse('Hello, %s!' % username)
 
+
 def user(request):
     username = request.path_params['username']
     return PlainTextResponse('Hello, %s!' % username)
+
 
 async def websocket_endpoint(websocket):
     await websocket.accept()
     await websocket.send_text('Hello, websocket!')
     await websocket.close()
 
+
 def startup():
     print('Ready to go')
 
 
-routes = [
+
+app_routes = [
     Route('/', homepage, methods=['GET', 'POST']),
     Route('/logout', logout),
+    Mount('/static', StaticFiles(directory="static"), name='static'),
     Route('/user/me', user_me),
     Route('/user/{username}', user),
     WebSocketRoute('/ws', websocket_endpoint),
-    Mount('/static', StaticFiles(directory="static")),
+    Mount('', app=api_app),
 ]
 
 app = Starlette(
     debug=True,
-    routes=routes,
+    routes=app_routes,
     on_startup=[startup])
 
 
@@ -134,11 +108,11 @@ app.add_middleware(
     AuthenticationMiddleware,
     backend=SessionAuthBackend())
 
+
 app.add_middleware(
     SessionMiddleware,
-    secret_key='supersecret',
-    #session_cookie='basicapi_session',
-    # max_age # seconds, defaults to 2 weeks
-    # same_site # defaults to 'lax'
+    secret_key=settings.SECRET_KEY,
+    session_cookie=settings.SESSION_COOKIE,
+    max_age=settings.SESSION_EXPIRE_SECONDS,
+    same_site=settings.SESSION_SAME_SITE,
     https_only=False)
-
