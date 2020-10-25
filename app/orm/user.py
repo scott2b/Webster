@@ -1,9 +1,9 @@
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session
 from typing import Any, Dict, Optional, Union
-from ..base import Base, CRUDManager
-from ...auth import get_password_hash, verify_password
-from ...schemas.user import UserCreate, UserUpdate
+from .base import Base, CRUDManager
+from ..auth import get_password_hash, verify_password
+from ..schemas.user import UserCreate, UserUpdate
 
 
 class User(Base):

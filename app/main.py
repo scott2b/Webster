@@ -1,3 +1,14 @@
+#from dependency_injector.wiring import Provide
+from .containers import Container
+from .orm import oauth2
+container = Container()
+container.wire(modules=[oauth2])
+
+#container.wire(modules=[backend, oauth2])
+#
+#from . import api
+#container.wire(modules=[api])
+
 from starlette.applications import Starlette
 from starlette.authentication import AuthenticationBackend, AuthCredentials, SimpleUser
 from starlette.exceptions import HTTPException
@@ -9,23 +20,15 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route, Mount, WebSocketRoute, Router
 from starlette.staticfiles import StaticFiles
 from .config import settings
-from .api import app as api_app
-from . import orm
-from .containers import Container
+from . import api
+#from .api import app as api_app
 
 import sys
-from dependency_injector.wiring import Provide
-container = Container()
-
-from . import api
-from .auth import backend
-container.wire(modules=[api, backend])
-
 import datetime
 
-from sqlalchemy.orm.session import Session
-
-from .auth.backend import SessionAuthBackend
+#from sqlalchemy.orm.session import Session
+#from .auth.backend import SessionAuthBackend
+from .auth import backend
 
 
 
@@ -89,7 +92,8 @@ app_routes = [
     Route('/user/me', user_me),
     Route('/user/{username}', user),
     WebSocketRoute('/ws', websocket_endpoint),
-    Mount('', app=api_app),
+    #Mount('', app=api_app),
+    Mount('', app=api.app),
 ]
 
 app = Starlette(
@@ -110,7 +114,7 @@ if settings.BACKEND_CORS_ORIGINS:
 
 app.add_middleware(
     AuthenticationMiddleware,
-    backend=SessionAuthBackend())
+    backend=backend.SessionAuthBackend())
 
 
 app.add_middleware(

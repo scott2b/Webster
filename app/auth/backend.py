@@ -1,15 +1,17 @@
 from starlette.authentication import AuthenticationBackend, AuthCredentials, SimpleUser
-from dependency_injector.wiring import Provide
-from sqlalchemy.orm.session import Session
-from ..containers import Container
+#from dependency_injector.wiring import Provide
+#from sqlalchemy.orm.session import Session
+#from ..containers import Container
 from .. import orm
 
 import datetime
 
 class SessionAuthBackend(AuthenticationBackend):
 
-    async def authenticate(self, request, db:Session=Provide[Container.database_client]):
-        print('INJECTED', db)
+    #async def authenticate(self, request, db:Session=Provide[Container.db]):
+
+    async def authenticate(self, request):
+        #print('INJECTED', db)
         print('SCOPE', request.scope)
         print('---')
         if 'username' in request.session:
@@ -21,8 +23,10 @@ class SessionAuthBackend(AuthenticationBackend):
                 return
             bearer = bearer[1]
             #db = orm.SessionLocal()
-            print('TYPED', type(db))
-            token = orm.models.OAuth2Token.get_by_access_token(db, bearer)
+            #print('TYPED', type(db))
+            #token = orm.models.OAuth2Token.get_by_access_token(db, bearer)
+            #token = orm.models.OAuth2Token.get_by_access_token(bearer)
+            token = orm.oauth2.oauth2_tokens.get_by_access_token(bearer)
             if token.revoked:
                 raise Exception
             if datetime.datetime.utcnow() > token.access_token_expires_at:

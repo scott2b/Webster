@@ -7,10 +7,15 @@ from starlette.authentication import requires
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
 
-from .orm.models import OAuth2Client, OAuth2Token
-from .orm.models.oauth2 import create_key, ACCESS_TOKEN_BYTES, REFRESH_TOKEN_BYTES
-from .orm import SessionLocal
+from . import orm
 
+#from .orm.models import OAuth2Client, OAuth2Token
+#from .orm.models.oauth2 import create_key, ACCESS_TOKEN_BYTES, REFRESH_TOKEN_BYTES
+#from .orm import SessionLocal
+
+#from dependency_injector.wiring import Provide
+#from sqlalchemy.orm.session import Session
+#from .containers import Container
 
 
 UI_ROUTES = {
@@ -113,23 +118,28 @@ def set_token(t):
 
 
 
+#async def token_refresh(request, db:Session=Provide[Container.database_client]):
 async def token_refresh(request):
     print('REFRESH TOKEN REQUEST AT:', datetime.datetime.utcnow())
     print('HEADERS', request.headers)
     data = await request.form()
-    db = SessionLocal()
-    token = OAuth2Token.refresh(db, data['grant_type'], data['refresh_token'], 30, 60)
+    #db = SessionLocal()
+    #token = orm.models.oauth2.OAuth2Token.refresh(db, data['grant_type'], data['refresh_token'], 30, 60)
+    #token = orm.models.oauth2.OAuth2Token.refresh(data['grant_type'], data['refresh_token'], 30, 60)
+    token = orm.oauth2.oauth2_tokens.refresh(data['grant_type'], data['refresh_token'], 30, 60)
     return JSONResponse(token.response_data())
 
 
+#async def token(request, db:Session=Provide[Container.database_client]):
 async def token(request):
     print('TOKEN REQUEST AT:', datetime.datetime.utcnow())
     data = await request.form()
     print(data)
-    db = SessionLocal()
+    #db = SessionLocal()
     access_lifetime = 30
     refresh_lifetime = 60
-    token = OAuth2Token.create(db, data['grant_type'], data['client_id'], data['client_secret'], access_lifetime, refresh_lifetime)
+    #token = orm.oauth2.OAuth2Token.create(data['grant_type'], data['client_id'], data['client_secret'], access_lifetime, refresh_lifetime)
+    token = orm.oauth2.oauth2_tokens.create(data['grant_type'], data['client_id'], data['client_secret'], access_lifetime, refresh_lifetime)
     if token:
         return JSONResponse(token.response_data())
 

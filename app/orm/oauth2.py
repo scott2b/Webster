@@ -1,14 +1,18 @@
 """
 https://docs.authlib.org/en/latest/flask/2/authorization-server.html
 """
-from __future__ import annotations # for returning self type from classmethod. remove in Py3.10
+#from __future__ import annotations # for returning self type from classmethod. remove in Py3.10
 import datetime
 import secrets
+from typing import Optional
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship, Session
-from ..base import Base
+from . import base
 from .user import User
 
+from dependency_injector.wiring import Provide
+from sqlalchemy.orm import session
+from .. import containers
 
 """
 The secrets module gives Base64 encoded text which is ~1.3 characters per byte.
@@ -32,7 +36,7 @@ def create_key(nbytes):
 
 
 
-class OAuth2Client(Base):
+class OAuth2Client(base.Base):
 
     __tablename__ = 'oauth2_clients'
 
@@ -46,8 +50,12 @@ class OAuth2Client(Base):
     )
     user = relationship('User')
 
-    @classmethod
-    def create_for_user(cls, db: Session, user:User) -> OAuth2Client:
+    #def create_for_user(cls, db: Session, user:User) -> OAuth2Client:
+
+
+class OAuth2ClientManager():
+
+    def create_for_user(cls, db: session.Session, user:User):
         db_obj = OAuth2Client(
             client_id=create_key(CLIENT_ID_BYTES),
             client_secret=create_key(CLIENT_SECRET_BYTES),
@@ -58,12 +66,15 @@ class OAuth2Client(Base):
         db.refresh(db_obj)
         return db_obj
 
-    @classmethod
-    def get_by_client_id(cls, db: Session, client_id: str) -> Optional[OAuth2Client]:
+    #def get_by_client_id(cls, client_id: str, db:Session=Provide[Container.database_client]) -> Optional[OAuth2Client]:
+
+    def get_by_client_id(cls, client_id: str, db:session.Session=Provide[containers.Container.db]):
         return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
 
+oauth2_clients = OAuth2ClientManager()
 
-class OAuth2Token(Base):
+
+class OAuth2Token(base.Base):
 
     __tablename__ = 'oauth2_tokens'
 
@@ -82,16 +93,34 @@ class OAuth2Token(Base):
     refresh_token_expires_at = Column(DateTime)
     client = relationship('OAuth2Client')
 
-    @classmethod
-    def get_by_access_token(cls, db: Session, access_token: str) -> Optional[OAuth2Token]:
+    def response_data(self):
+        now = datetime.datetime.utcnow()
+        expires_in = (self.access_token_expires_at - now).seconds
+        return {
+            'access_token': self.access_token,
+            'refresh_token': self.refresh_token,
+            'token_type': self.token_type,
+            'expires_in': expires_in
+        }
+
+    #def get_by_access_token(cls, db: Session, access_token: str) -> Optional[OAuth2Token]:
+
+    #def get_by_access_token(cls, db: session.Session, access_token: str):
+
+
+class OAuth2TokenManager():
+
+    def get_by_access_token(cls, access_token: str, db:session.Session=Provide[containers.Container.db]):
         return db.query(OAuth2Token).filter(OAuth2Token.access_token == access_token).first()
 
-    @classmethod
-    def get_by_refresh_token(cls, db: Session, refresh_token: str) -> Optional[OAuth2Token]:
+    #def get_by_refresh_token(cls, db: Session, refresh_token: str) -> Optional[OAuth2Token]:
+
+    def get_by_refresh_token(cls, db: session.Session, refresh_token: str):
         return db.query(OAuth2Token).filter(OAuth2Token.refresh_token == refresh_token).first()
 
-    @classmethod
-    def create(cls, db:Session, grant_type:str, client_id:str, client_secret:str, access_lifetime:int, refresh_lifetime:int) -> Optional[OAuth2Token]:
+    #def create(cls, grant_type:str, client_id:str, client_secret:str, access_lifetime:int, refresh_lifetime:int, db:Session=Provide[Container.database_client]) -> Optional[OAuth2Token]:
+
+    def create(cls, grant_type:str, client_id:str, client_secret:str, access_lifetime:int, refresh_lifetime:int, db:session.Session=Provide[containers.Container.db]):
         """
         Currently only supporting creation of client_credentials granted tokens
         and bearer token type:
@@ -138,7 +167,8 @@ class OAuth2Token(Base):
         """
         if grant_type != 'client_credentials':
             raise Exception
-        client = OAuth2Client.get_by_client_id(db, client_id)
+        #client = OAuth2Client.get_by_client_id(client_id, db=db)
+        client = oauth2_clients.get_by_client_id(client_id, db=db)
         valid = secrets.compare_digest(client_secret, client.client_secret)
         if not valid:
             raise Exception
@@ -163,18 +193,10 @@ class OAuth2Token(Base):
         print('REFRESH EXPIRES:', db_obj.refresh_token_expires_at)
         return db_obj
 
-    def response_data(self):
-        now = datetime.datetime.utcnow()
-        expires_in = (self.access_token_expires_at - now).seconds
-        return {
-            'access_token': self.access_token,
-            'refresh_token': self.refresh_token,
-            'token_type': self.token_type,
-            'expires_in': expires_in
-        }
 
-    @classmethod
-    def refresh(cls, db:Session, grant_type:str, refresh_token:str, access_lifetime:int, refresh_lifetime:int) -> Optional[OAuth2Token]:
+    #def refresh(cls, db:Session, grant_type:str, refresh_token:str, access_lifetime:int, refresh_lifetime:int) -> Optional[OAuth2Token]:
+
+    def refresh(cls, grant_type:str, refresh_token:str, access_lifetime:int, refresh_lifetime:int, db:session.Session=Provide[containers.Container.db]):
         """
         https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
 
@@ -220,3 +242,5 @@ class OAuth2Token(Base):
         print('ACCESS EXPIRES', token.access_token_expires_at)
         print('REFRESH EXPIRES', token.refresh_token_expires_at)
         return token
+
+oauth2_tokens = OAuth2TokenManager()
