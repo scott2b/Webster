@@ -12,17 +12,29 @@ from .config import settings
 from .api import app as api_app
 from . import orm
 
+import datetime
+
 
 class SessionAuthBackend(AuthenticationBackend):
+
     async def authenticate(self, request):
+        print('SCOPE', request.scope)
+        print('---')
         if 'username' in request.session:
             username = request.session['username']
-            return AuthCredentials(["authenticated"]), SimpleUser(username)
-        elif request.headers.get('key'):
-            key = request.headers['key']
-            print('KEY', key)
-            if key == '123':
-                return AuthCredentials(["authenticated"]), SimpleUser(key)
+            return AuthCredentials(['app_auth', 'api_auth']), SimpleUser(username)
+        if request.headers.get('authorization'):
+            bearer = request.headers['authorization'].split()
+            if bearer[0] != 'Bearer':
+                return
+            bearer = bearer[1]
+            db = orm.SessionLocal()
+            token = orm.models.OAuth2Token.get_by_access_token(db, bearer)
+            if token.revoked:
+                raise Exception
+            if datetime.datetime.utcnow() > token.access_token_expires_at:
+                raise Exception
+            return AuthCredentials(['api_auth']), None
 
 
 def logout(request):
