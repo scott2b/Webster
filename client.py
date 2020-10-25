@@ -40,8 +40,10 @@ print('waiting for expire')
 time.sleep(35)
 
 protected_url = 'http://localhost:8000/widget'
-r = client.get(protected_url)
-print(r)
+
+for i in range(10_000):
+    r = client.get(protected_url)
+    print(i, r)
 
 
 #from oauthlib.oauth2 import TokenExpiredError
