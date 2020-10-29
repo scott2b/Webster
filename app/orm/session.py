@@ -7,7 +7,9 @@ from .. import containers
 
 @contextmanager
 def session_scope(db:Session=Provide[containers.Container.db]):
-    """Provides a transactional db session scope as a context block."""
+    """Provides a transactional db session scope as a context block.
+
+    """
     try:
         yield db
         db.commit()
@@ -26,6 +28,10 @@ def db_session(f):
 
     Function must accept db, which will automatically be closed here in the
     decorator.
+
+    Note: created objects do not get a database ID until they are committed.
+    Thus, if you use this to provide a session to a function, newly created
+    objects will not have an ID within the function unless committed first.
     """
     @functools.wraps(f)
     async def wrapped_f(*args, **kwargs):
