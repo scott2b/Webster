@@ -6,6 +6,7 @@ from starlette.authentication import requires
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
+from .config import settings
 from .orm.oauth2.token import oauth2_tokens
 from .orm.session import db_session
 
@@ -90,16 +91,16 @@ def authorize(request):
 
 async def token_refresh(request):
     data = dict(await request.form())
-    data['access_lifetime'] = 30
-    data['refresh_lifetime'] = 60
+    data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
+    data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
     token = oauth2_tokens.refresh(**data)
     return JSONResponse(token.response_data())
 
 
 async def token(request):
     data = dict(await request.form())
-    data['access_lifetime'] = 30
-    data['refresh_lifetime'] = 60
+    data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
+    data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
     token = oauth2_tokens.create(**data)
     return JSONResponse(token.response_data())
 
