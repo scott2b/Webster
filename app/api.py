@@ -8,7 +8,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
 from .config import settings
 from .orm.oauth2.token import oauth2_tokens
-from .orm.session import db_session
+from .orm.db import db_session
 
 
 UI_ROUTES = {

@@ -14,15 +14,15 @@ a decorator for db session management and only injecting into the decorator
 (actually via a helper method).
 """
 from .containers import Container
-from .orm import session #, oauth2
+from .orm import db #, oauth2
 from .orm.oauth2 import client, token
 container = Container()
 container.init_resources()
 #container.config.from_ini('config.ini')
 from . import ui, api
-container.wire(modules=[session, client, token])
+container.wire(modules=[db, client, token])
 # TODO: why can't we do this? The api module in particular seems problematic:
-# container.wire(modules=[session, ui, api])
+# container.wire(modules=[db, ui, api])
 
 # end of wiring
 

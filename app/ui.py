@@ -1,5 +1,5 @@
 from .orm import oauth2, user
-from .orm.session import db_session
+from .orm.db import db_session
 from starlette.exceptions import HTTPException
 from starlette.responses import PlainTextResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
