@@ -4,6 +4,10 @@ from typing import Any, Dict, Optional, Union
 from .base import Base, CRUDManager
 from ..auth import get_password_hash, verify_password
 from ..schemas.user import UserCreate, UserUpdate
+from .. import containers
+
+
+from dependency_injector.wiring import Provide
 
 
 class User(Base):
@@ -51,8 +55,12 @@ class UserManager(CRUDManager[User, UserCreate, UserUpdate]):
             update_data["hashed_password"] = hashed_password
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
-    def authenticate(self, db: Session, *, email: str, password: str) -> Optional[User]:
+    def authenticate(self, *, email: str, password: str, db:Session) -> Optional[User]:
+        print(type(db))
+        print(dir(db))
+        print('GETTING BY EMAIL')
         user = self.get_by_email(db, email=email)
+        print('GOT USER BY EMAIL', user)
         if not user:
             return None
         if not verify_password(password, user.hashed_password):

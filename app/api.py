@@ -1,21 +1,13 @@
-import datetime
 from pydantic import BaseModel, Field, constr
 from spectree import SpecTree, Response
 from spectree.plugins.starlette_plugin import StarlettePlugin, PAGES
 from starlette.applications import Starlette
 from starlette.authentication import requires
+from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
-
-from . import orm
-
-#from .orm.models import OAuth2Client, OAuth2Token
-#from .orm.models.oauth2 import create_key, ACCESS_TOKEN_BYTES, REFRESH_TOKEN_BYTES
-#from .orm import SessionLocal
-
-#from dependency_injector.wiring import Provide
-#from sqlalchemy.orm.session import Session
-#from .containers import Container
+from .orm.oauth2 import oauth2_tokens
+from .orm.session import db_session
 
 
 UI_ROUTES = {
@@ -32,7 +24,7 @@ class CustomPlugin(StarlettePlugin):
                 self.config.spec_url,
                 lambda request: JSONResponse(self.spectree.spec),
             )
-        except: # wtf?
+        except: # some weirdness in the spectree library
             pass
         for ui in PAGES:
             self.app.add_route(
@@ -42,8 +34,7 @@ class CustomPlugin(StarlettePlugin):
                 ),
             )
 
-api = SpecTree('starlette', path='docs', backend=CustomPlugin, MODE='strict')
-# api = SpecTree('starlette', path='docs', MODE='strict')
+_app = SpecTree('starlette', path='docs', backend=CustomPlugin, MODE='strict')
 
 
 class Message(BaseModel):
@@ -60,7 +51,7 @@ class Profile(BaseModel):
     )
 
 
-@api.validate(json=Profile, resp=Response(HTTP_200=Message, HTTP_403=None), tags=['api'])
+@_app.validate(json=Profile, resp=Response(HTTP_200=Message, HTTP_403=None), tags=['api'])
 @requires('app_auth', status_code=403)
 async def user_profile(request):
     """
@@ -97,49 +88,22 @@ def authorize(request):
     #return server.create_authorization_response(request, grant_user=None)
 
 
-import secrets
-
-_token = {
-    'access_token': secrets.token_urlsafe(32),
-    'refresh_token': secrets.token_urlsafe(128),
-    'token_type': 'Bearer',
-}
-
-
-def get_token():
-    global _token
-    return _token
-
-
-def set_token(t):
-    global _token
-    _token = t
-
-
-
-
-#async def token_refresh(request, db:Session=Provide[Container.database_client]):
-async def token_refresh(request):
-    print('REFRESH TOKEN REQUEST AT:', datetime.datetime.utcnow())
-    print('HEADERS', request.headers)
-    data = await request.form()
-    #db = SessionLocal()
-    #token = orm.models.oauth2.OAuth2Token.refresh(db, data['grant_type'], data['refresh_token'], 30, 60)
-    #token = orm.models.oauth2.OAuth2Token.refresh(data['grant_type'], data['refresh_token'], 30, 60)
-    token = orm.oauth2.oauth2_tokens.refresh(data['grant_type'], data['refresh_token'], 30, 60)
+@db_session
+async def token_refresh(request, db:Session):
+    data = dict(await request.form())
+    data['access_lifetime'] = 30
+    data['refresh_lifetime'] = 60
+    token = oauth2_tokens.refresh(db, **data)
     return JSONResponse(token.response_data())
 
 
-#async def token(request, db:Session=Provide[Container.database_client]):
-async def token(request):
-    print('TOKEN REQUEST AT:', datetime.datetime.utcnow())
-    data = await request.form()
-    print(data)
-    #db = SessionLocal()
-    access_lifetime = 30
-    refresh_lifetime = 60
-    #token = orm.oauth2.OAuth2Token.create(data['grant_type'], data['client_id'], data['client_secret'], access_lifetime, refresh_lifetime)
-    token = orm.oauth2.oauth2_tokens.create(data['grant_type'], data['client_id'], data['client_secret'], access_lifetime, refresh_lifetime)
+@db_session
+async def token(request, db:Session):
+    data = dict(await request.form())
+    data['access_lifetime'] = 30
+    data['refresh_lifetime'] = 60
+    token = oauth2_tokens.create(db, **data)
+    data = token.response_data()
     if token:
         return JSONResponse(token.response_data())
 
@@ -152,10 +116,11 @@ routes = [
     Route('/widget/', widget)
 ]
 
-app = Starlette(
-    debug=True,
-    routes=routes,
-    on_startup=[])
 
-
-api.register(app)
+def get_app():
+    app = Starlette(
+        debug=True,
+        routes=routes,
+        on_startup=[])
+    _app.register(app)
+    return app

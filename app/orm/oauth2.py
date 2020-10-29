@@ -7,12 +7,7 @@ import secrets
 from typing import Optional
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship, Session
-from . import base
-from .user import User
-
-from dependency_injector.wiring import Provide
-from sqlalchemy.orm import session
-from .. import containers
+from . import base, user
 
 """
 The secrets module gives Base64 encoded text which is ~1.3 characters per byte.
@@ -55,20 +50,18 @@ class OAuth2Client(base.Base):
 
 class OAuth2ClientManager():
 
-    def create_for_user(cls, db: session.Session, user:User):
+    def create_for_user(cls, db: Session, user:user.User):
         db_obj = OAuth2Client(
             client_id=create_key(CLIENT_ID_BYTES),
             client_secret=create_key(CLIENT_SECRET_BYTES),
             user=user
         )
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        #db.commit()
+        #db.refresh(db_obj)
         return db_obj
 
-    #def get_by_client_id(cls, client_id: str, db:Session=Provide[Container.database_client]) -> Optional[OAuth2Client]:
-
-    def get_by_client_id(cls, client_id: str, db:session.Session=Provide[containers.Container.db]):
+    def get_by_client_id(cls, db:Session, client_id: str):
         return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
 
 oauth2_clients = OAuth2ClientManager()
@@ -110,17 +103,20 @@ class OAuth2Token(base.Base):
 
 class OAuth2TokenManager():
 
-    def get_by_access_token(cls, access_token: str, db:session.Session=Provide[containers.Container.db]):
+    def get_by_access_token(cls, db:Session, access_token: str):
         return db.query(OAuth2Token).filter(OAuth2Token.access_token == access_token).first()
 
-    #def get_by_refresh_token(cls, db: Session, refresh_token: str) -> Optional[OAuth2Token]:
-
-    def get_by_refresh_token(cls, db: session.Session, refresh_token: str):
+    def get_by_refresh_token(cls, db:Session, refresh_token: str):
         return db.query(OAuth2Token).filter(OAuth2Token.refresh_token == refresh_token).first()
 
-    #def create(cls, grant_type:str, client_id:str, client_secret:str, access_lifetime:int, refresh_lifetime:int, db:Session=Provide[Container.database_client]) -> Optional[OAuth2Token]:
-
-    def create(cls, grant_type:str, client_id:str, client_secret:str, access_lifetime:int, refresh_lifetime:int, db:session.Session=Provide[containers.Container.db]):
+    def create(
+            cls,
+            db:Session,
+            grant_type:str,
+            client_id:str,
+            client_secret:str,
+            access_lifetime:int,
+            refresh_lifetime:int, **kwargs):
         """
         Currently only supporting creation of client_credentials granted tokens
         and bearer token type:
@@ -167,8 +163,7 @@ class OAuth2TokenManager():
         """
         if grant_type != 'client_credentials':
             raise Exception
-        #client = OAuth2Client.get_by_client_id(client_id, db=db)
-        client = oauth2_clients.get_by_client_id(client_id, db=db)
+        client = oauth2_clients.get_by_client_id(db, client_id)
         valid = secrets.compare_digest(client_secret, client.client_secret)
         if not valid:
             raise Exception
@@ -186,8 +181,8 @@ class OAuth2TokenManager():
 
         )
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        #db.commit()
+        #db.refresh(db_obj)
         print('CREATED TOKEN WITH')
         print('ACCESS EXPIRES:', db_obj.access_token_expires_at)
         print('REFRESH EXPIRES:', db_obj.refresh_token_expires_at)
@@ -196,7 +191,11 @@ class OAuth2TokenManager():
 
     #def refresh(cls, db:Session, grant_type:str, refresh_token:str, access_lifetime:int, refresh_lifetime:int) -> Optional[OAuth2Token]:
 
-    def refresh(cls, grant_type:str, refresh_token:str, access_lifetime:int, refresh_lifetime:int, db:session.Session=Provide[containers.Container.db]):
+    def refresh(cls, db:Session,
+            grant_type:str,
+            refresh_token:str,
+            access_lifetime:int,
+            refresh_lifetime:int, **kwargs):
         """
         https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
 
@@ -236,8 +235,8 @@ class OAuth2TokenManager():
         token.access_token_expires_at = now + datetime.timedelta(seconds=access_lifetime) 
         token.refresh_token_expires_at = now + datetime.timedelta(seconds=refresh_lifetime) 
         db.add(token)
-        db.commit()
-        db.refresh(token)
+        #db.commit()
+        #db.refresh(token)
         print('REFRESHED TOKEN WITH')
         print('ACCESS EXPIRES', token.access_token_expires_at)
         print('REFRESH EXPIRES', token.refresh_token_expires_at)

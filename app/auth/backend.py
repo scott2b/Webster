@@ -1,19 +1,13 @@
-from starlette.authentication import AuthenticationBackend, AuthCredentials, SimpleUser
-#from dependency_injector.wiring import Provide
-#from sqlalchemy.orm.session import Session
-#from ..containers import Container
-from .. import orm
-
 import datetime
+from starlette.authentication import AuthenticationBackend, AuthCredentials, SimpleUser
+from .. import orm
+from ..orm.session import session_scope as db_session_scope
+from ..orm.oauth2 import oauth2_tokens
+
 
 class SessionAuthBackend(AuthenticationBackend):
 
-    #async def authenticate(self, request, db:Session=Provide[Container.db]):
-
     async def authenticate(self, request):
-        #print('INJECTED', db)
-        print('SCOPE', request.scope)
-        print('---')
         if 'username' in request.session:
             username = request.session['username']
             return AuthCredentials(['app_auth', 'api_auth']), SimpleUser(username)
@@ -22,13 +16,10 @@ class SessionAuthBackend(AuthenticationBackend):
             if bearer[0] != 'Bearer':
                 return
             bearer = bearer[1]
-            #db = orm.SessionLocal()
-            #print('TYPED', type(db))
-            #token = orm.models.OAuth2Token.get_by_access_token(db, bearer)
-            #token = orm.models.OAuth2Token.get_by_access_token(bearer)
-            token = orm.oauth2.oauth2_tokens.get_by_access_token(bearer)
-            if token.revoked:
-                raise Exception
-            if datetime.datetime.utcnow() > token.access_token_expires_at:
-                raise Exception
+            with db_session_scope() as db:
+                token = oauth2_tokens.get_by_access_token(db, bearer)
+                if token.revoked:
+                    raise Exception
+                if datetime.datetime.utcnow() > token.access_token_expires_at:
+                    raise Exception
             return AuthCredentials(['api_auth']), None
