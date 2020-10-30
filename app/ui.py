@@ -1,9 +1,12 @@
 from .orm import oauth2, user
 from .orm.db import db_session
 from starlette.exceptions import HTTPException
+from starlette.templating import Jinja2Templates
 from starlette.responses import PlainTextResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
+
+templates = Jinja2Templates(directory='templates')
 
 
 def logout(request):
@@ -25,15 +28,4 @@ async def homepage(request, db:Session):
         elif not user.users.is_active(_user):
             raise HTTPException(status_code=400, detail="Inactive user")
         request.session['username'] = form['username']
-    return HTMLResponse(f"""
-<html>
-<body>
-    hello {request.session.get('username')}
-    <form action="." method="POST">
-        <input name="username" type="text" />
-        <input name="password" type="text" />
-        <input type="submit" />
-    </form>
-</body>
-</html>
-""")
+    return templates.TemplateResponse('home.html', {'request': request})
