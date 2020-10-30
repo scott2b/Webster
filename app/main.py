@@ -19,10 +19,11 @@ from .orm.oauth2 import client, token
 container = Container()
 container.init_resources()
 #container.config.from_ini('config.ini')
-from . import ui, api
+import sys
 container.wire(modules=[db, client, token])
 # TODO: why can't we do this? The api module in particular seems problematic:
 # container.wire(modules=[db, ui, api])
+from . import ui, api
 
 # end of wiring
 
@@ -53,11 +54,14 @@ def startup():
     print(f'{settings.PROJECT_NAME} startup.')
 
 
+
+
 app_routes = [
     Route('/', ui.homepage, methods=['GET', 'POST']),
     Route('/logout', ui.logout),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('', app=api.get_app()),
+    
 ]
 
 app = Starlette(

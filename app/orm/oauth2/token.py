@@ -8,7 +8,7 @@ from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Bool
 from sqlalchemy.orm import relationship, Session
 from .. import base, user
 
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, Closing
 from ...containers import Container
 
 from . import (
@@ -67,11 +67,11 @@ class OAuth2TokenManager():
             client_secret:str,
             access_lifetime:int,
             refresh_lifetime:int,
-            db:Session=Provide[Container.db],
-            commit=True,
+            db:Session=Closing[Provide[Container.closed_db]],
             **kwargs):
         """
-        Create a new token for the given data. Commits unless specified False.
+        Create a new token for the given data. Does not commit or close a
+        Session if explicitly provided.
 
         Currently only supporting creation of client_credentials granted tokens
         and bearer token type:
@@ -116,6 +116,7 @@ class OAuth2TokenManager():
             * error_description (ascii only - a sentence or 2)
             * error_uri - link, e.g. to api docs
         """
+        print('CREATING TOKEN')
         if grant_type != 'client_credentials':
             raise Exception('Invalid grant type')
         client = oauth2_clients.get_by_client_id(client_id, db=db)
@@ -134,8 +135,7 @@ class OAuth2TokenManager():
 
         )
         db.add(token)
-        if commit:
-            db.commit()
+        print('CREATED TOKEN')
         return token
 
     def refresh(cls,
@@ -143,11 +143,12 @@ class OAuth2TokenManager():
             refresh_token:str,
             access_lifetime:int,
             refresh_lifetime:int,
-            db:Session=Provide[Container.db],
-            commit=True,
+            db:Session=Closing[Provide[Container.closed_db]],
             **kwargs):
         """
         https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
+
+        Refresh the token. Does not commit/close Session if explicitly provided.
 
         TODO: implement refresh
 
@@ -185,8 +186,6 @@ class OAuth2TokenManager():
         token.access_token_expires_at = now + datetime.timedelta(seconds=access_lifetime) 
         token.refresh_token_expires_at = now + datetime.timedelta(seconds=refresh_lifetime) 
         db.add(token)
-        if commit:
-            db.commit()
         return token
 
 oauth2_tokens = OAuth2TokenManager()

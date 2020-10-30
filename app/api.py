@@ -8,8 +8,12 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
 from .config import settings
 from .orm.oauth2.token import oauth2_tokens
-from .orm.db import db_session
+from .orm.db import db_session, session_scope
 
+
+from dependency_injector.wiring import Closing
+from dependency_injector.wiring import Provide
+from .containers import Container
 
 UI_ROUTES = {
   'redoc': 'api',
@@ -97,11 +101,17 @@ async def token_refresh(request):
     return JSONResponse(token.response_data())
 
 
+
 async def token(request):
+    print('TOKEN VIEW')
     data = dict(await request.form())
     data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
     data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
-    token = oauth2_tokens.create(**data)
+    with session_scope() as db:
+        print('CALLING TOKEN CREATE')
+        token = oauth2_tokens.create(db=db, **data)
+        print('DONE CALLING TOKEN CREATE')
+    print('END TOKEN VIEW')
     return JSONResponse(token.response_data())
 
 
