@@ -1,6 +1,12 @@
-    hello {{request.session.get('username')}}
-    <form action="." method="POST">
-        <input name="username" type="text" />
-        <input name="password" type="text" />
-        <input type="submit" />
-    </form>
+<form method="POST" action=".">
+    {{ form.email.label }}: {{ form.email(class="css_class") }}
+    {% if form.email.errors %}
+        <ul class="errors">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    {{ form.password.label }}: {{ form.password() }}
+    {% if form.password.errors %}
+        <ul class="errors">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    {% endif %}
+        <input type="submit" value="login"/>
+</form>

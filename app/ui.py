@@ -1,5 +1,5 @@
 from .orm import oauth2, user
-from .orm.db import db_session
+from .orm.db import db_session, session_scope
 from starlette.exceptions import HTTPException
 from starlette.templating import Jinja2Templates
 from starlette.responses import PlainTextResponse, HTMLResponse, RedirectResponse
@@ -12,30 +12,37 @@ from . import containers
 templates = Jinja2Templates(directory='templates')
 
 
+from wtforms import Form, BooleanField, StringField, validators, PasswordField
+
+
+class LoginForm(Form):
+    email = StringField('Email Address', [validators.Email()])
+    password = PasswordField('Password')
+
+
 def logout(request):
     del request.session['username']
     return RedirectResponse(url='/')
 
 
-#@db_session
-
-
-#async def homepage(request, db:Session=Closing[Provide[containers.Container.db]]):
-async def homepage(request, db:Session=Closing[Provide[containers.Container.db]]):
-    print('HOMEPAGE')
-    print('DB SESSION OBJ:', db)
-    if request.method == 'POST':
-        form = await request.form()
+async def homepage(request):
+    messages = []
+    form = LoginForm(await request.form())
+    if request.method == 'POST' and form.validate():
         _user = user.users.authenticate(
-            email=form['username'],
-            password=form['password'],
-            db=db
+            email=form.email.data,
+            password=form.password.data
         )
         if not _user:
-            raise HTTPException(status_code=400, detail="Incorrect email or password")
+            messages.append('Incorrect email or password')
         elif not user.users.is_active(_user):
-            raise HTTPException(status_code=400, detail="Inactive user")
-        request.session['username'] = form['username']
-    print('END HOMEPAGE')
-    return templates.TemplateResponse('home.html', {'request': request})
+            messages.append('Deactivated account')
+        else:
+            request.session['username'] = form.email.data
+            return RedirectResponse(url='/', status_code=302)
+    return templates.TemplateResponse('home.html', {
+        'request': request,
+        'form': form,
+        'messages': messages
+    })
 

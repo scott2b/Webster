@@ -7,7 +7,7 @@ from ..schemas.user import UserCreate, UserUpdate
 from .. import containers
 
 
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Closing, Provide
 
 
 class User(Base):
@@ -55,12 +55,13 @@ class UserManager(CRUDManager[User, UserCreate, UserUpdate]):
             update_data["hashed_password"] = hashed_password
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
-    def authenticate(self, *, email: str, password: str, db:Session) -> Optional[User]:
-        print(type(db))
-        print(dir(db))
-        print('GETTING BY EMAIL')
+    def authenticate(
+            self,
+            email: str,
+            password: str,
+            db:Session=Closing[Provide[containers.Container.closed_db]]
+        ) -> Optional[User]:
         user = self.get_by_email(db, email=email)
-        print('GOT USER BY EMAIL', user)
         if not user:
             return None
         if not verify_password(password, user.hashed_password):
