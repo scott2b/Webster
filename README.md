@@ -137,10 +137,14 @@ is that of the optional session parameter. You can see this usage, for example,
 in orm.oauth2.token.create.
 
 With this pattern, a Session object can be provided (via the db argument), in
-which case, the caller has the responsibility of rollback, commit, close. If
-a Session is not provided, one is injected via Closing wiring so that the
-lifecycle is automatically handled over the scope of the function.
+which case, the caller has the responsibility of rollback, commit, close. You
+would do this in the case where this is one of a series of operations for a
+combined transaction scope. If a Session is not explicitly provided, one is
+injected via Closing wiring so that the lifecycle (commit & close) is
+automatically handled over the scope of the function.
 
 **Important Note:** In order for this pattern to allow for returned objects to be
 usable by the caller, the injected Session must be created with `expire_on_commit=False`
-so that the object is available after the session is closed.
+so that the object is available after the session is closed. Also, this should
+only be used with thread-local session scope as exceptions cannot be caught by
+the service provider.

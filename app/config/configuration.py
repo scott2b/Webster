@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: Optional[str] = None
 
     # OAUTH
-    OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS: int = 30
-    OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS: int = 60
+    OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS: int = 300
+    OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS: int = 600
 
     @validator("EMAILS_FROM_NAME")
     def get_project_name(cls, v: Optional[str], values: Dict[str, Any]) -> str:

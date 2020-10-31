@@ -1,6 +1,9 @@
 import click
 from . import orm, schemas
+from .orm.db import session_scope
 from fastapi.encoders import jsonable_encoder
+
+from .containers import SessionLocal
 
 
 # users group
@@ -21,9 +24,10 @@ def create_user(full_name, email, password, superuser):
        password=password,
        is_superuser=superuser
     )
-    session = orm.SessionLocal()
+    session = SessionLocal()
     try:
-        orm.users.create(session, obj_in=user)
+        from .orm.user import users
+        users.create(session, obj_in=user)
     except:
         session.rollback()
         raise
@@ -45,10 +49,12 @@ def update_user(email, password):
 @click.argument('email')
 @click.option('--create', is_flag=True)
 def create_client(email, create):
-    session = orm.SessionLocal()
-    user = orm.users.get_by_email(session, email=email)
+    session = SessionLocal()
+    from .orm.user import users
+    user = users.get_by_email(session, email=email)
     if create:
-        client = orm.models.OAuth2Client.create_for_user(session, user)
+        from .orm.oauth2.client import oauth2_clients
+        client = oauth2_clients.create_for_user(user, db=session)
         print(client) # todo, make this readable
     else:
         pass # todo, output a user's clients

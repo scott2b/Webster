@@ -61,7 +61,6 @@ app_routes = [
     Route('/logout', ui.logout),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('', app=api.get_app()),
-    
 ]
 
 app = Starlette(

@@ -68,11 +68,9 @@ async def user_profile(request):
     return JSONResponse({'text': 'it works'})
 
 
+
 @requires(['api_auth'], status_code=403)
-def widget(request):
-    print(request.scope)
-    print(dir(request.auth))
-    print(request.auth.scopes)
+async def widget(request):
     return JSONResponse({ 'foo': 'bar' })
 
 
@@ -101,17 +99,11 @@ async def token_refresh(request):
     return JSONResponse(token.response_data())
 
 
-
 async def token(request):
-    print('TOKEN VIEW')
     data = dict(await request.form())
     data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
     data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
-    with session_scope() as db:
-        print('CALLING TOKEN CREATE')
-        token = oauth2_tokens.create(db=db, **data)
-        print('DONE CALLING TOKEN CREATE')
-    print('END TOKEN VIEW')
+    token = oauth2_tokens.create(**data)
     return JSONResponse(token.response_data())
 
 

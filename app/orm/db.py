@@ -10,7 +10,6 @@ def session_scope(db:Session=Provide[containers.Container.db]):
     """Provides a transactional db session scope as a context block.
 
     """
-    print('SESSION SCOPE')
     try:
         yield db
         db.commit()
@@ -18,7 +17,6 @@ def session_scope(db:Session=Provide[containers.Container.db]):
         db.rollback()
         raise
     finally:
-        print('CLOSING SESSION SCOPE')
         db.close()
 
 

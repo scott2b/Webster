@@ -58,6 +58,8 @@ class OAuth2TokenManager():
         return db.query(OAuth2Token).filter(OAuth2Token.access_token == access_token).first()
 
     def get_by_refresh_token(cls, refresh_token: str, db:Session=Provide[Container.db]):
+        print('GET BY REFRESH:', refresh_token)
+        print('DB', db)
         return db.query(OAuth2Token).filter(OAuth2Token.refresh_token == refresh_token).first()
 
     def create(
@@ -71,7 +73,7 @@ class OAuth2TokenManager():
             **kwargs):
         """
         Create a new token for the given data. Does not commit or close a
-        Session if explicitly provided.
+        Session is explicitly provided.
 
         Currently only supporting creation of client_credentials granted tokens
         and bearer token type:
@@ -116,7 +118,6 @@ class OAuth2TokenManager():
             * error_description (ascii only - a sentence or 2)
             * error_uri - link, e.g. to api docs
         """
-        print('CREATING TOKEN')
         if grant_type != 'client_credentials':
             raise Exception('Invalid grant type')
         client = oauth2_clients.get_by_client_id(client_id, db=db)
@@ -135,7 +136,6 @@ class OAuth2TokenManager():
 
         )
         db.add(token)
-        print('CREATED TOKEN')
         return token
 
     def refresh(cls,

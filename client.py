@@ -33,17 +33,21 @@ extra = {}
 client = OAuth2Session(client_id, token=token, auto_refresh_url=refresh_url,
     auto_refresh_kwargs=extra, token_updater=token_saver)
 
+
 import time
 
 
-print('waiting for expire')
-time.sleep(35)
+#print('waiting for expire')
+#time.sleep(35)
 
 protected_url = 'http://localhost:8000/widget'
 
 for i in range(10_000):
-    r = client.get(protected_url)
-    print(i, r)
+    try:
+        r = client.get(protected_url)
+        print(i, r)
+    except:
+        pass
 
 
 #from oauthlib.oauth2 import TokenExpiredError
