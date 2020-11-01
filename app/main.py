@@ -15,7 +15,7 @@ a decorator for db session management and only injecting into the decorator
 """
 from .containers import Container
 from .orm import db #, oauth2
-from .orm import user
+from .orm import user, base
 from .orm.oauth2 import client, token
 container = Container()
 container.init_resources()

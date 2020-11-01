@@ -3,13 +3,16 @@ from starlette.authentication import AuthenticationBackend, AuthCredentials, Sim
 from .. import orm
 from ..orm.oauth2.token import oauth2_tokens
 
+from ..orm.db import session_scope
 
 class SessionAuthBackend(AuthenticationBackend):
 
     async def authenticate(self, request):
-        if 'username' in request.session:
-            username = request.session['username']
-            return AuthCredentials(['app_auth', 'api_auth']), SimpleUser(username)
+        if 'user_id' in request.session:
+            user_id = request.session['user_id']
+            with session_scope() as db:
+                user = orm.user.users.get(user_id, db=db)
+            return AuthCredentials(['app_auth', 'api_auth']), user
         if request.headers.get('authorization'):
             bearer = request.headers['authorization'].split()
             if bearer[0] != 'Bearer':

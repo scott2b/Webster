@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship, Session
 from .. import base
 from ..user import User
 
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, Closing
 from ...containers import Container
 
 from . import (
@@ -60,5 +60,12 @@ class OAuth2ClientManager():
     def get_by_client_id(cls, client_id: str,
             db:Session=Provide[Container.db]):
         return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
+
+    def get_by_user_id(cls, user_id:int,
+            db:Session=Closing[Provide[Container.db]]):
+        return db.query(OAuth2Client).filter(OAuth2Client.user_id==user_id).all()
+        
+         
+    
 
 oauth2_clients = OAuth2ClientManager()

@@ -4,6 +4,7 @@ from pydantic import BaseModel as PydanticBaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import declarative_base
 
+from dependency_injector.wiring import Provide, Closing
 
 Base = declarative_base()
 
@@ -24,7 +25,7 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    def get(self, db: Session, id: Any) -> Optional[ModelType]:
+    def get(self, id: Any, db: Session=Closing[Provide[Session]]) -> Optional[ModelType]:
         return db.query(self.model).filter(self.model.id == id).first()
 
     def get_multi(

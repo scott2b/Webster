@@ -82,7 +82,11 @@ input {
     {% endif %}
   </div>
   <div class="two">
-    Two
+    <h3>Application clients</h3>
+    {% for client in api_clients %}
+        <p><strong>ID:</strong>{{ client.client_id }}</p>
+        <p><strong>SECRET:</strong>{{ client.client_secret }}</p>
+    {% endfor %}
   </div>
   <div class="three">
     <h2>Login</h2>

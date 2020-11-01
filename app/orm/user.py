@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session
 from typing import Any, Dict, Optional, Union
-from .base import Base, CRUDManager
+from . import base
 from ..auth import get_password_hash, verify_password
 from ..schemas.user import UserCreate, UserUpdate
 from .. import containers
@@ -10,7 +10,7 @@ from .. import containers
 from dependency_injector.wiring import Closing, Provide
 
 
-class User(Base):
+class User(base.Base):
 
     __tablename__ = 'users'
 
@@ -21,11 +21,15 @@ class User(Base):
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
 
+    @property
+    def is_authenticated(self):
+        return True
+
     def get_user_id(self):
         return self.id
 
 
-class UserManager(CRUDManager[User, UserCreate, UserUpdate]):
+class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
 
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
         return db.query(User).filter(User.email == email).first()

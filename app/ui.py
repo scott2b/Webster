@@ -34,9 +34,11 @@ class LoginForm(CSRFForm):
 
 
 def logout(request):
-    del request.session['username']
+    del request.session['user_id']
     return RedirectResponse(url='/')
 
+
+from .orm.oauth2.client import oauth2_clients
 
 async def homepage(request):
     messages = []
@@ -53,10 +55,16 @@ async def homepage(request):
             messages.append('Deactivated account')
         else:
             request.session['username'] = form.email.data
+            request.session['user_id'] = _user.id
             return RedirectResponse(url='/', status_code=302)
+    if request.user.is_authenticated:
+        api_clients = oauth2_clients.get_by_user_id(request.user.id)
+    else:
+        api_clients = []
     return templates.TemplateResponse('home.html', {
         'request': request,
         'form': form,
+        'api_clients': api_clients,
         'messages': messages
     })
 
