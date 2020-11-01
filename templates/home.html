@@ -84,8 +84,9 @@ input {
   <div class="two">
     <h3>Application clients</h3>
     {% for client in api_clients %}
-        <p><strong>ID:</strong>{{ client.client_id }}</p>
-        <p><strong>SECRET:</strong>{{ client.client_secret }}</p>
+        <p><strong>NAME:</strong> {{ client.name }}</p>
+        <p><strong>ID:</strong> {{ client.client_id }}</p>
+        <p><strong>SECRET:</strong> {{ client.client_secret }}</p>
     {% endfor %}
   </div>
   <div class="three">

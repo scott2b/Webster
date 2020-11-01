@@ -28,6 +28,9 @@ def create_key(nbytes):
 class OAuth2Client(base.Base):
 
     __tablename__ = 'oauth2_clients'
+    __table_args__ = (
+        UniqueConstraint('name', 'user_id', name='name_user_id_unique_1'),
+    )
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False, default='Primary')
@@ -38,7 +41,6 @@ class OAuth2Client(base.Base):
     user_id = Column(
         Integer, ForeignKey('users.id', ondelete='CASCADE')
     )
-    #UniqueConstraint('name', 'user_id', name='name_user_id_unique_1')
     user = relationship('User')
 
 
