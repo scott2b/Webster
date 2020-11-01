@@ -55,10 +55,9 @@ def startup():
     print(f'{settings.PROJECT_NAME} startup.')
 
 
-
-
 app_routes = [
     Route('/', ui.homepage, methods=['GET', 'POST']),
+    Route('/login', ui.login, methods=['GET', 'POST']),
     Route('/logout', ui.logout),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('', app=api.get_app()),

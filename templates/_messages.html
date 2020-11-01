@@ -1,0 +1,9 @@
+    {% if request.session.messages %}
+      <ul>
+      {% for message in request.session.messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {{ clear_messages() }}
+    {% endif %}
+

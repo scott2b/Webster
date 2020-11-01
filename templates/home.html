@@ -65,13 +65,7 @@ input {
 
 <div class="wrapper">
   <div class="zero">
-    {% if messages %}
-      <ul>
-      {% for message in messages %}
-      <li>{{ message }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
+    {% include "_messages.html" %}
   </div>
   <div class="one">
     <h1>Starlight</h1>
@@ -92,7 +86,9 @@ input {
   <div class="three">
     <h2>Login</h2>
       <div>
-      {% include "login.html" %}
+      {% with action='/login?next=/' %}
+        {% include "login.html" %}
+      {% endwith %}
       </div>
   </div>
   <div class="four">

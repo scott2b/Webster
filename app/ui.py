@@ -9,8 +9,18 @@ from dependency_injector.wiring import Closing
 from dependency_injector.wiring import Provide
 from . import containers
 from .config import settings
+from .orm.oauth2.client import oauth2_clients
 
 templates = Jinja2Templates(directory='templates')
+
+from jinja2.ext import Extension
+from functools import partial
+
+
+
+def _clear_messages(request):
+    request.session['messages']= []
+    return ''
 
 
 from wtforms import Form, BooleanField, StringField, validators, PasswordField
@@ -32,39 +42,65 @@ class LoginForm(CSRFForm):
     email = StringField('Email Address', [validators.Email()])
     password = PasswordField('Password')
 
+    def __init__(self, data, request, *args, **kwargs):
+        self.request = request
+        super().__init__(data, *args, **kwargs)
+
+    def validate(self):
+        v = super().validate()
+        if not v:
+            return False
+        _user = user.users.authenticate(
+            email=self.email.data,
+            password=self.password.data
+        )
+        if not _user:
+            self.request.session['messages'] = ['Incorrect email or password']
+        elif not user.users.is_active(_user):
+            self.request.session['messages'] = ['Deactivated account']
+        else:
+            self.request.session['username'] = self.email.data
+            self.request.session['user_id'] = _user.id
+        if _user:
+            return True
+        else:
+            return False
+
+
+async def login(request):
+    data = await request.form()
+    form = LoginForm(data, request, meta={ 'csrf_context': request.session })
+    if request.method == 'POST' and form.validate():
+        next = request.query_params.get('next', '/')
+        return RedirectResponse(url=next, status_code=302)
+    clear_messages = partial(_clear_messages, request)
+    return templates.TemplateResponse('login.html', {
+        'request': request,
+        'form': form,
+        'clear_messages': clear_messages
+    })
+
 
 def logout(request):
     del request.session['user_id']
     return RedirectResponse(url='/')
 
 
-from .orm.oauth2.client import oauth2_clients
-
 async def homepage(request):
-    messages = []
+
     data = await request.form()
-    form = LoginForm(data, meta={ 'csrf_context': request.session })
+    form = LoginForm(data, request, meta={ 'csrf_context': request.session })
     if request.method == 'POST' and form.validate():
-        _user = user.users.authenticate(
-            email=form.email.data,
-            password=form.password.data
-        )
-        if not _user:
-            messages.append('Incorrect email or password')
-        elif not user.users.is_active(_user):
-            messages.append('Deactivated account')
-        else:
-            request.session['username'] = form.email.data
-            request.session['user_id'] = _user.id
-            return RedirectResponse(url='/', status_code=302)
+        return RedirectResponse(url='/', status_code=302)
+
     if request.user.is_authenticated:
         api_clients = oauth2_clients.get_by_user_id(request.user.id)
     else:
         api_clients = []
+    clear_messages = partial(_clear_messages, request)
     return templates.TemplateResponse('home.html', {
         'request': request,
         'form': form,
         'api_clients': api_clients,
-        'messages': messages
+        'clear_messages': clear_messages
     })
-
