@@ -6,6 +6,7 @@ import datetime
 import secrets
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship, Session
+from sqlalchemy import UniqueConstraint, ForeignKeyConstraint
 from .. import base
 from ..user import User
 
@@ -29,6 +30,7 @@ class OAuth2Client(base.Base):
     __tablename__ = 'oauth2_clients'
 
     id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False, default='Primary')
     client_id = Column(String(CLIENT_ID_MAX_CHARS), unique=True, index=True, nullable=False)
     client_secret = Column(String(CLIENT_SECRET_MAX_CHARS), unique=True, index=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -36,7 +38,9 @@ class OAuth2Client(base.Base):
     user_id = Column(
         Integer, ForeignKey('users.id', ondelete='CASCADE')
     )
+    #UniqueConstraint('name', 'user_id', name='name_user_id_unique_1')
     user = relationship('User')
+
 
 
 class OAuth2ClientManager():
