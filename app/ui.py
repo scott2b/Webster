@@ -67,6 +67,39 @@ class LoginForm(CSRFForm):
             return False
 
 
+class APIClientForm(CSRFForm):
+    name = StringField('Name')
+
+    def __init__(self, data, request, *args, **kwargs):
+        self.request = request
+        super().__init__(data, *args, **kwargs)
+
+    def validate(self):
+        if not self.request.user or not self.request.user.is_authenticated:
+            raise Exception('Unauthorized')
+        v = super().validate()
+        if not v:
+            return False
+        _client = None
+        import psycopg2
+        from sqlalchemy import exc
+        from wtforms.validators import ValidationError
+        with session_scope() as db:
+            try:
+                _client = oauth2_clients.create_for_user(
+                    self.request.user, self.name.data, db=db) 
+                #except psycopg2.errors.UniqueViolation:
+            except exc.IntegrityError:
+                #raise ValidationError('Please provide a unique client name.')
+                db.rollback()
+                self.request.session['messages'] = ['Please provide a unique client name.']
+                v = False
+        if _client and v:
+            return True
+        else:
+            return False
+
+
 async def login(request):
     data = await request.form()
     form = LoginForm(data, request, meta={ 'csrf_context': request.session })
@@ -86,13 +119,27 @@ def logout(request):
     return RedirectResponse(url='/')
 
 
+async def add_api_client(request):
+    data = await request.form()
+    form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
+    if request.method == 'POST' and form.validate():
+        next = request.query_params.get('next', '/')
+        return RedirectResponse(url=next, status_code=302)
+    clear_messages = partial(_clear_messages, request)
+    return templates.TemplateResponse('_client.html', {
+        'request': request,
+        'form': form,
+        'clear_messages': clear_messages
+    })
+
+
 async def homepage(request):
 
     data = await request.form()
     form = LoginForm(data, request, meta={ 'csrf_context': request.session })
-    if request.method == 'POST' and form.validate():
-        return RedirectResponse(url='/', status_code=302)
-
+    client_form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
+    #if request.method == 'POST' and form.validate():
+    #    return RedirectResponse(url='/', status_code=302)
     if request.user.is_authenticated:
         api_clients = oauth2_clients.get_by_user_id(request.user.id)
     else:
@@ -101,6 +148,7 @@ async def homepage(request):
     return templates.TemplateResponse('home.html', {
         'request': request,
         'form': form,
+        'client_form': client_form,
         'api_clients': api_clients,
-        'clear_messages': clear_messages
+        'clear_messages': clear_messages,
     })

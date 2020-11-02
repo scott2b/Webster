@@ -50,10 +50,12 @@ class OAuth2ClientManager():
     def create_for_user(
             cls,
             user:User,
+            name:str,
             commit=True,
             db:Session=Provide[Container.db]
         ):
         db_obj = OAuth2Client(
+            name=name,
             client_id=create_key(CLIENT_ID_BYTES),
             client_secret=create_key(CLIENT_SECRET_BYTES),
             user=user

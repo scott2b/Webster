@@ -76,20 +76,38 @@ input {
     {% endif %}
   </div>
   <div class="two">
+    {% if request.user.is_authenticated %}
     <h3>Application clients</h3>
     {% for client in api_clients %}
+        <div style="border:1px solid blue;">
         <p><strong>NAME:</strong> {{ client.name }}</p>
         <p><strong>ID:</strong> {{ client.client_id }}</p>
         <p><strong>SECRET:</strong> {{ client.client_secret }}</p>
+        </div>
     {% endfor %}
+
+    <h3>Create a new API client:</h3>
+    {% with form=client_form %}
+        {% with action='/client?next=/' %}
+            {% include "_client.html" %}
+        {% endwith %}
+    {% endwith %}
+    {% endif %}
   </div>
   <div class="three">
+    {% if request.user.is_authenticated %}
+        <div>
+            <strong>{{ request.user.email }}</strong>
+            <a href="/logout">Logout</a>
+        </div>
+    {% else %}
     <h2>Login</h2>
       <div>
       {% with action='/login?next=/' %}
         {% include "login.html" %}
       {% endwith %}
       </div>
+    {% endif %}
   </div>
   <div class="four">
     Four
