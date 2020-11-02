@@ -83,6 +83,11 @@ input {
         <p><strong>NAME:</strong> {{ client.name }}</p>
         <p><strong>ID:</strong> {{ client.client_id }}</p>
         <p><strong>SECRET:</strong> {{ client.client_secret }}</p>
+        <form action="/client?next=/" method="POST">
+            <input type="hidden" name="delete" value="delete" />
+            <input type="hidden" name="client_id" value="{{client.client_id}}" />
+            <input type="submit" value="Delete" />
+        </form>
         </div>
     {% endfor %}
 

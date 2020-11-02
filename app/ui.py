@@ -122,9 +122,17 @@ def logout(request):
 async def add_api_client(request):
     data = await request.form()
     form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
+    if request.method == 'POST' and 'delete' in data:
+        with session_scope() as db:
+            oauth2_clients.delete_by_client_id(data['client_id'], request.user, db)
+        next = request.query_params.get('next', '/')
+        return RedirectResponse(url=next, status_code=302)
     if request.method == 'POST' and form.validate():
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
+    elif request.method == 'DELETE':
+        print(data)
+        exit()
     clear_messages = partial(_clear_messages, request)
     return templates.TemplateResponse('_client.html', {
         'request': request,

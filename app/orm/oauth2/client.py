@@ -72,6 +72,13 @@ class OAuth2ClientManager():
     def get_by_user_id(cls, user_id:int,
             db:Session=Closing[Provide[Container.db]]):
         return db.query(OAuth2Client).filter(OAuth2Client.user_id==user_id).all()
+
+    def delete_by_client_id(cls, client_id:str, user:User, db:Session):
+        obj = db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id,
+            User.id==user.id).first()
+        if obj:
+            db.delete(obj)
+        
         
          
     
