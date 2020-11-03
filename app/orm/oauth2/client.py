@@ -51,7 +51,10 @@ class OAuth2ClientUpdate(OAuth2Base):
 
 
 class OAuth2Client(base.ModelBase):
-    """OAuth2 API Client model."""
+    """OAuth2 API Client model.
+
+    TODO: user should be non-nullable
+    """
     # pylint: disable=too-few-public-methods
 
     __tablename__ = 'oauth2_clients'
