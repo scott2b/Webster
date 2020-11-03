@@ -2,6 +2,7 @@
 https://requests-oauthlib.readthedocs.io/en/latest/oauth2_workflow.html#backend-application-flow
 """
 import os
+import time
 from requests.auth import HTTPBasicAuth
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
@@ -27,14 +28,17 @@ token = oauth.fetch_token(token_url=token_url, client_id=client_id, client_secre
 print(token)
 
 
+
 refresh_url = 'http://localhost:8000/token-refresh'
 extra = {}
 
 client = OAuth2Session(client_id, token=token, auto_refresh_url=refresh_url,
     auto_refresh_kwargs=extra, token_updater=token_saver)
 
+r = client.post('http://localhost:8000/client2', data={'name':'foo'})
+print(r.json())
+exit()
 
-import time
 
 
 #print('waiting for expire')
@@ -42,12 +46,17 @@ import time
 
 protected_url = 'http://localhost:8000/widget'
 
+
+start_time = time.time()
 for i in range(10_000):
     try:
         r = client.get(protected_url)
         print(i, r)
     except:
+        raise
         pass
+
+print('Finished in:', time.time() - start_time)
 
 
 #from oauthlib.oauth2 import TokenExpiredError

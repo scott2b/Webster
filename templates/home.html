@@ -91,13 +91,13 @@ input {
         </div>
     {% endfor %}
 
+    {% endif %}
     <h3>Create a new API client:</h3>
     {% with form=client_form %}
         {% with action='/client?next=/' %}
             {% include "_client.html" %}
         {% endwith %}
     {% endwith %}
-    {% endif %}
   </div>
   <div class="three">
     {% if request.user.is_authenticated %}

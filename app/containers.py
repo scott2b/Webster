@@ -1,3 +1,4 @@
+from typing import Generator
 from dependency_injector import containers, providers
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.scoping import scoped_session
@@ -16,8 +17,10 @@ from .config import settings
 Use scope_session for thread-local scoping to avoid session leaks.
 """
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
-SessionLocal = scoped_session(sessionmaker(
-    autocommit=False, autoflush=False, bind=engine, expire_on_commit=False))
+SessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
+#SessionLocal = scoped_session(sessionmaker(
+#    autocommit=False, autoflush=False, bind=engine, expire_on_commit=False))
 
 
 """
@@ -39,7 +42,7 @@ def receive_checkout(dbapi_connection, connection_record, connection_proxy):
     connection_count += 1
 
 
-def get_closed_db() -> Session:
+def get_closed_db() -> Generator:
     """Yield a db session that is closed when the function is exited. Note, to
     work properly, this needs to be provided as a Resource (not a Factory),
     and must be injected with the Closing operator. E.g:
@@ -58,8 +61,12 @@ def get_closed_db() -> Session:
 
     Example code tends not to use this in the application layer, but it is
     handy in the ORM layer for providing alternative Session lifecycles. This
-    requires expire_on_commit=False as above so that objects returned from the
-    orm layer are still usable after the session is closed.
+    requires expire_on_commit=False as set above so that objects returned from
+    the orm layer are still usable after the session is closed.
+
+    There does not seem to be any performance penalty for committing sessions
+    that do not really need to be committed. Thus, a no-commit option is not
+    provided.
     """
     db = SessionLocal()
     yield db
@@ -71,10 +78,12 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
+    # Do not use this with the Closing directive
     db = providers.Factory(
         SessionLocal
     )
 
+    # For use with Closing.
     # Use only with scoped_session thread-local scope.
     closed_db = providers.Resource(
         get_closed_db

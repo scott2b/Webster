@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Union, Optional
-from jose import jwt
-from passlib.context import CryptContext
+from jose import jwt # type: ignore
+from passlib.context import CryptContext # type: ignore
 from ..config import settings
 
 

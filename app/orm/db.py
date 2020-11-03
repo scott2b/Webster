@@ -9,6 +9,9 @@ from .. import containers
 def session_scope(db:Session=Provide[containers.Container.db]):
     """Provides a transactional db session scope as a context block.
 
+    There does not seem to be any performance penalty to not committing
+    sessions that do not need to be committed. Thus, a no-commit option is not
+    provided.
     """
     try:
         yield db

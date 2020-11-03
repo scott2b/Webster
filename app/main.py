@@ -60,6 +60,7 @@ app_routes = [
     Route('/login', ui.login, methods=['GET', 'POST']),
     Route('/logout', ui.logout),
     Route('/client', ui.add_api_client, methods=['DELETE', 'POST']),
+    Route('/client2', ui.client, methods=['DELETE', 'POST']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('', app=api.get_app()),
 ]

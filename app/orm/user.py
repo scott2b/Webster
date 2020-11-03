@@ -1,18 +1,19 @@
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import Session
+"""User ORM model and object manager."""
 from typing import Any, Dict, Optional, Union
+from dependency_injector.wiring import Closing, Provide
+from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy.orm import Session
 from . import base
 from ..auth import get_password_hash, verify_password
 from ..schemas.user import UserCreate, UserUpdate
-from .. import containers
+from ..containers import Container
 
 
-from dependency_injector.wiring import Closing, Provide
+class User(base.ModelBase):
+    """User model."""
+    # pylint: disable=too-few-public-methods
 
-
-class User(base.Base):
-
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     full_name = Column(String, index=True)
@@ -23,18 +24,27 @@ class User(base.Base):
 
     @property
     def is_authenticated(self):
+        """All user objects are authenticated."""
         return True
-
-    def get_user_id(self):
-        return self.id
 
 
 class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
+    """User object manager."""
 
-    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
+    def get_by_email(
+            self, email: str, *,
+            db:Session = Closing[Provide[Container.closed_db]]) -> Optional[User]:
+        """Get user by email address."""
+        # Dep-inj not working with classmethod
+        # https://github.com/ets-labs/python-dependency-injector/issues/318
+        # pylint: disable=no-self-use
         return db.query(User).filter(User.email == email).first()
 
-    def create(self, db: Session, *, obj_in: UserCreate) -> User:
+    def create(
+            self, *,
+            obj_in: UserCreate,
+            db:Session = Closing[Provide[Container.closed_db]]) -> User:
+        """Create a new user in the database."""
         db_obj = User(
             email=obj_in.email,
             hashed_password=get_password_hash(obj_in.password),
@@ -42,13 +52,14 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
             is_superuser=obj_in.is_superuser,
         )
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
         return db_obj
 
     def update(
-        self, db: Session, *, db_obj: User, obj_in: Union[UserUpdate, Dict[str, Any]]
-    ) -> User:
+            self, *,
+            db_obj: User,
+            obj_in: Union[UserUpdate, Dict[str, Any]],
+            db:Session = Closing[Provide[Container.closed_db]]) -> User:
+        """Update user object data in the database."""
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -57,26 +68,19 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
             update_data["hashed_password"] = hashed_password
-        return super().update(db, db_obj=db_obj, obj_in=update_data)
+        return super().update(db_obj=db_obj, obj_in=update_data, db=db)
 
     def authenticate(
-            self,
-            email: str,
-            password: str,
-            db:Session=Closing[Provide[containers.Container.closed_db]]
-        ) -> Optional[User]:
-        user = self.get_by_email(db, email=email)
+            self, email: str, password: str, *,
+            db:Session = Closing[Provide[Container.closed_db]]) -> Optional[User]:
+        """Return a user by email address if the provided password verifies."""
+        user = self.get_by_email(email, db=db)
         if not user:
             return None
         if not verify_password(password, user.hashed_password):
             return None
         return user
 
-    def is_active(self, user: User) -> bool:
-        return user.is_active
-
-    def is_superuser(self, user: User) -> bool:
-        return user.is_superuser
-
 
 users = UserManager(User)
+User.objects = users

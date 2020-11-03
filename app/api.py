@@ -107,6 +107,11 @@ async def token(request):
     return JSONResponse(token.response_data())
 
 
+async def client(request):
+    data = dict(await request.form())
+    
+
+
 routes = [
     Route('/user', user_profile, methods=['POST']),
     Route('/auth', authorize, methods=['GET']),

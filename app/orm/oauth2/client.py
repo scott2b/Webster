@@ -4,15 +4,14 @@ https://docs.authlib.org/en/latest/flask/2/authorization-server.html
 #from __future__ import annotations # for returning self type from classmethod. remove in Py3.10
 import datetime
 import secrets
+from typing import List, Optional
+from dependency_injector.wiring import Provide, Closing
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship, Session
-from sqlalchemy import UniqueConstraint, ForeignKeyConstraint
+from sqlalchemy import UniqueConstraint
 from .. import base
 from ..user import User
-
-from dependency_injector.wiring import Provide, Closing
 from ...containers import Container
-
 from . import (
     CLIENT_ID_BYTES,
     CLIENT_SECRET_BYTES,
@@ -22,10 +21,38 @@ from . import (
 
 
 def create_key(nbytes):
+    """Create a URL safe secret token."""
     return secrets.token_urlsafe(nbytes)
 
 
-class OAuth2Client(base.Base):
+from typing import Optional
+from pydantic import BaseModel, EmailStr
+
+
+class OAuth2Base(BaseModel):
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    name: Optional[str]
+    client_id: Optional[str]
+    client_secret: Optional[str]
+    created_at: Optional[datetime.datetime]
+    secret_expires_at: Optional[datetime.datetime]
+    user: Optional[User]
+
+
+class OAuth2ClientCreate(OAuth2Base):
+    name: str
+
+
+class OAuth2ClientUpdate(OAuth2Base):
+    name: str
+
+
+class OAuth2Client(base.ModelBase):
+    """OAuth2 API Client model."""
+    # pylint: disable=too-few-public-methods
 
     __tablename__ = 'oauth2_clients'
     __table_args__ = (
@@ -41,19 +68,21 @@ class OAuth2Client(base.Base):
     user_id = Column(
         Integer, ForeignKey('users.id', ondelete='CASCADE')
     )
-    user = relationship('User')
+    user = relationship('User') # type: ignore
 
 
+#class OAuth2ClientManager():
 
-class OAuth2ClientManager():
+class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAuth2ClientUpdate]):
+    """OAuth2 API object manager."""
 
-    def create_for_user(
-            cls,
-            user:User,
-            name:str,
-            commit=True,
-            db:Session=Provide[Container.db]
-        ):
+    def _create(self, user:User, name:str, *,
+            db:Session=Closing[Provide[Container.closed_db]]
+        ) -> OAuth2Client:
+        """Create an API client for the given user."""
+        # Dep-inj not working with classmethod
+        # https://github.com/ets-labs/python-dependency-injector/issues/318
+        # pylint: disable=no-self-use
         db_obj = OAuth2Client(
             name=name,
             client_id=create_key(CLIENT_ID_BYTES),
@@ -61,26 +90,56 @@ class OAuth2ClientManager():
             user=user
         )
         db.add(db_obj)
-        if commit:
-            db.commit()
         return db_obj
 
-    def get_by_client_id(cls, client_id: str,
-            db:Session=Provide[Container.db]):
+    def create(
+            self, *,
+            obj_in: OAuth2ClientCreate,
+            db:Session = Closing[Provide[Container.closed_db]]) -> User:
+        """Create a new user in the database."""
+        db_obj = OAuth2Client(
+            name=obj_in.name,
+            client_id=create_key(CLIENT_ID_BYTES),
+            client_secret=create_key(CLIENT_SECRET_BYTES),
+            user=obj_in.user
+        )
+        db.add(db_obj)
+        return db_obj
+
+    def get_by_client_id(self, client_id: str, *,
+            db:Session=Closing[Provide[Container.closed_db]]
+        ) -> Optional[OAuth2Client]:
+        """Get an API client by client ID."""
+        # Dep-inj not working with classmethod
+        # https://github.com/ets-labs/python-dependency-injector/issues/318
+        # pylint: disable=no-self-use
         return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
 
-    def get_by_user_id(cls, user_id:int,
-            db:Session=Closing[Provide[Container.db]]):
+    def get_by_user_id(self, user_id:int, *,
+            db:Session=Closing[Provide[Container.closed_db]]
+        ) -> List[OAuth2Client]:
+        """Get the API clients for the user."""
+        # Dep-inj not working with classmethod
+        # https://github.com/ets-labs/python-dependency-injector/issues/318
+        # pylint: disable=no-self-use
         return db.query(OAuth2Client).filter(OAuth2Client.user_id==user_id).all()
 
-    def delete_by_client_id(cls, client_id:str, user:User, db:Session):
-        obj = db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id,
+    def delete_user_client(self, client_id:str, user:User, *,
+            db:Session=Closing[Provide[Container.closed_db]]
+        ) -> bool:
+        """Delete the specified API client."""
+        # Dep-inj not working with classmethod
+        # https://github.com/ets-labs/python-dependency-injector/issues/318
+        # pylint: disable=no-self-use
+        obj = db.query(OAuth2Client).filter(
+            OAuth2Client.client_id == client_id,
             User.id==user.id).first()
         if obj:
             db.delete(obj)
-        
-        
-         
-    
+            return True
+        else:
+            return False
 
-oauth2_clients = OAuth2ClientManager()
+
+oauth2_clients = OAuth2ClientManager(OAuth2Client)
+OAuth2Client.objects = oauth2_clients
