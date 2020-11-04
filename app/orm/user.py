@@ -9,9 +9,13 @@ from ..auth import get_password_hash, verify_password
 from ..schemas.user import UserCreate, UserUpdate
 from ..containers import Container
 
+import pydantic
 
-@dataclass
-class UserSchema():
+from pydantic import BaseModel, EmailStr
+
+### Schema
+
+class UserBase(BaseModel):
     id: int
     full_name: str
     email: str
@@ -20,18 +24,30 @@ class UserSchema():
     is_superuser: bool
 
 
-class User(UserSchema, base.ModelBase):
+class UserResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    is_active: bool
+    is_superuser: bool
+
+
+### ORM
+
+@dataclass
+class User(base.ModelBase, base.DataModel):
     """User model."""
     # pylint: disable=too-few-public-methods
 
     __tablename__ = "users"
+    base_schema = UserBase
 
-    id = Column(Integer, primary_key=True, index=True)
-    full_name = Column(String, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean(), default=True)
-    is_superuser = Column(Boolean(), default=False)
+    id:int = Column(Integer, primary_key=True, index=True)
+    full_name:str = Column(String, index=True)
+    email:str = Column(String, unique=True, index=True, nullable=False)
+    hashed_password:str = Column(String, nullable=False)
+    is_active:bool = Column(Boolean(), default=True)
+    is_superuser:bool = Column(Boolean(), default=False)
 
     @property
     def is_authenticated(self):
@@ -42,17 +58,14 @@ class User(UserSchema, base.ModelBase):
 class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
     """User object manager."""
 
-    def get_by_email(
-            self, email: str, *,
+    @classmethod
+    def get_by_email(cls, email: str, *,
             db:Session = Closing[Provide[Container.closed_db]]) -> Optional[User]:
         """Get user by email address."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         return db.query(User).filter(User.email == email).first()
 
-    def create(
-            self, *,
+    @classmethod
+    def create(cls, *,
             obj_in: UserCreate,
             db:Session = Closing[Provide[Container.closed_db]]) -> User:
         """Create a new user in the database."""
@@ -65,8 +78,8 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
         db.add(db_obj)
         return db_obj
 
-    def update(
-            self, *,
+    @classmethod
+    def update(cls, *,
             db_obj: User,
             obj_in: Union[UserUpdate, Dict[str, Any]],
             db:Session = Closing[Provide[Container.closed_db]]) -> User:
@@ -81,11 +94,11 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
             update_data["hashed_password"] = hashed_password
         return super().update(db_obj=db_obj, obj_in=update_data, db=db)
 
-    def authenticate(
-            self, email: str, password: str, *,
+    @classmethod
+    def authenticate(cls, email: str, password: str, *,
             db:Session = Closing[Provide[Container.closed_db]]) -> Optional[User]:
         """Return a user by email address if the provided password verifies."""
-        user = self.get_by_email(email, db=db)
+        user = cls.get_by_email(email, db=db)
         if not user:
             return None
         if not verify_password(password, user.hashed_password):

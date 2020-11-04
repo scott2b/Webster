@@ -39,6 +39,7 @@ except MissingTokenError:
     exit()
 print(token)
 
+time.sleep(30)
 
 refresh_url = 'http://localhost:8000/token-refresh'
 extra = {}

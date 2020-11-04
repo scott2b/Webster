@@ -89,24 +89,26 @@ class OAuth2Client(base.ModelBase, ModelExceptions):
 class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAuth2ClientUpdate]):
     """OAuth2 API object manager."""
 
-    def _create(self, user:User, name:str, *,
-            db:Session=Closing[Provide[Container.closed_db]]
-        ) -> OAuth2Client:
-        """Create an API client for the given user."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
-        db_obj = OAuth2Client(
-            name=name,
-            client_id=create_key(CLIENT_ID_BYTES),
-            client_secret=create_key(CLIENT_SECRET_BYTES),
-            user=user
-        )
-        db.add(db_obj)
-        return db_obj
+    
+    #def _create(self, user:User, name:str, *,
+    #        db:Session=Closing[Provide[Container.closed_db]]
+    #    ) -> OAuth2Client:
+    #    """Create an API client for the given user."""
+    #    # Dep-inj not working with classmethod
+    #    # https://github.com/ets-labs/python-dependency-injector/issues/318
+    #    # pylint: disable=no-self-use
+    #    db_obj = OAuth2Client(
+    #        name=name,
+    #        client_id=create_key(CLIENT_ID_BYTES),
+    #        client_secret=create_key(CLIENT_SECRET_BYTES),
+    #        user=user
+    #    )
+    #    db.add(db_obj)
+    #    return db_obj
 
+    @classmethod
     def create(
-            self, *,
+            cls, *,
             obj_in: OAuth2ClientCreate,
             db:Session = Closing[Provide[Container.closed_db]]) -> User:
         """Create a new user in the database."""
@@ -119,16 +121,15 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
         db.add(db_obj)
         return db_obj
 
-    def get_by_client_id(self, client_id: str, *,
+    @classmethod
+    def get_by_client_id(cls, client_id: str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Client]:
         """Get an API client by client ID."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).one_or_none()
 
-    def get_by_client_id_user(self, client_id: str, user_id, *,
+    @classmethod
+    def get_by_client_id_user(cls, client_id: str, user_id, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Client]:
         """Get an API client by client ID."""
@@ -139,22 +140,18 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
             OAuth2Client.client_id == client_id,
             OAuth2Client.user_id == user_id).first()
 
-    def get_by_user_id(self, user_id:int, *,
+    @classmethod
+    def get_by_user_id(cls, user_id:int, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> List[OAuth2Client]:
         """Get the API clients for the user."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         return db.query(OAuth2Client).filter(OAuth2Client.user_id==user_id).all()
 
-    def delete_user_client(self, client_id:str, user:User, *,
+    @classmethod
+    def delete_user_client(cls, client_id:str, user:User, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> bool:
         """Delete the specified API client."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         obj = db.query(OAuth2Client).filter(
             OAuth2Client.client_id == client_id,
             User.id==user.id).first()
@@ -164,16 +161,13 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
         else:
             return False
 
-    def exists(self, name:str, user:User, *,
+    @classmethod
+    def exists(cls, name:str, user:User, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> bool:
-        print('name:', name)
-        print('user:', user)
         q = db.query(OAuth2Client).filter(
             OAuth2Client.name == name,
             User.id == user.id)
-        #print('FRIST OBJ')
-        #print(q.first())
         return db.query(q.exists()).scalar()
             
 

@@ -3,8 +3,9 @@ https://docs.authlib.org/en/latest/flask/2/authorization-server.html
 """
 #from __future__ import annotations # for returning self type from classmethod. remove in Py3.10
 import datetime
-import secrets
+from dataclasses import dataclass
 from typing import Optional
+from pydantic import BaseModel, validator, ValidationError # pylint:disable=no-name-in-module
 from dependency_injector.wiring import Provide, Closing
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship, Session
@@ -19,52 +20,112 @@ from . import (
 )
 
 
-class InvalidGrantType(Exception): pass
-class Revoked(Exception): pass
-class Expired(Exception): pass
+class InvalidGrantType(Exception):
+    """Invalid token auth grant-type."""
 
 
-class OAuth2Token(base.ModelBase):
+class Revoked(Exception):
+    """Reoved token."""
+
+
+class Expired(Exception):
+    """Expired token."""
+
+
+### Schema
+
+class TokenRequest(BaseModel):
+    """Validate a request for a new token."""
+    # pylint: disable=too-few-public-methods
+    grant_type:str
+    client_id:str
+    client_secret:str
+
+
+class TokenRefreshRequest(BaseModel):
+    """Validate token refresh request."""
+    # pylint: disable=too-few-public-methods
+
+    class Config:
+        """Configure TokenRefreshRequest."""
+        extra = 'ignore'
+
+    grant_type: str
+    refresh_token: str
+
+
+class TokenResponse(BaseModel):
+    """client_credentials granted access token of Bearer type."""
+    # pylint: disable=too-few-public-methods
+    access_token: str
+    token_type: str
+    refresh_token: str
+    access_token_expires_at: Optional[datetime.datetime]
+    expires_in: Optional[int]
+
+    @validator('expires_in', always=True)
+    @classmethod
+    def set_expires_in(cls, v, values):
+        """Set the expires_in value based on the access_token_expires_at value.
+        """
+        if not v:
+            if 'access_token_expires_at' in values:
+                now = datetime.datetime.utcnow()
+                v = (values['access_token_expires_at'] - now).seconds
+                del values['access_token_expires_at']
+            else:
+                raise ValidationError(
+                    'Either expires_in or access_token_expires_at required.')
+        return v
+
+
+class ScopedTokenResponse(TokenResponse):
+    """
+    Scope of response is required if granted scope is different from
+    requested scope.
+
+    Not really needed for client_credentials, which is all we are supporting
+    at the moment.
+    """
+    # pylint: disable=too-few-public-methods
+    scope: str
+
+
+
+### ORM
+
+@dataclass
+class OAuth2Token(base.ModelBase, base.DataModel):
     """OAuth2 token model with access and refresh data."""
     # pylint: disable=too-few-public-methods
 
     __tablename__ = 'oauth2_tokens'
 
-    id = Column(Integer, primary_key=True)
-    client_id = Column(
+    id:int = Column(Integer, primary_key=True)
+    client_id:int = Column(
         Integer, ForeignKey('oauth2_clients.id', ondelete='CASCADE')
     )
-    token_type = Column(String(40))
-    access_token = Column(String(ACCESS_TOKEN_MAX_CHARS), index=True,
+    token_type:str = Column(String(40))
+    access_token:str = Column(String(ACCESS_TOKEN_MAX_CHARS), index=True,
                           unique=True, nullable=False)
-    refresh_token = Column(String(REFRESH_TOKEN_MAX_CHARS), index=True,
+    refresh_token:str = Column(String(REFRESH_TOKEN_MAX_CHARS), index=True,
                            unique=True)
-    scope = Column(Text, default='')
-    revoked = Column(Boolean, default=False)
-    created_at = Column(DateTime, nullable=False,
+    scope:str = Column(Text, default='')
+    revoked:bool = Column(Boolean, default=False)
+    created_at:datetime.datetime = Column(DateTime, nullable=False,
                         default=datetime.datetime.utcnow)
-    refreshed_at = Column(DateTime, nullable=False,
+    refreshed_at:datetime.datetime = Column(DateTime, nullable=False,
                           default=datetime.datetime.utcnow)
-    access_token_expires_at = Column(DateTime, nullable=False)
-    refresh_token_expires_at = Column(DateTime)
+    access_token_expires_at:datetime.datetime = Column(DateTime, nullable=False)
+    refresh_token_expires_at:datetime.datetime = Column(DateTime)
     client = relationship('OAuth2Client') # type: ignore
 
-    InvalidGrantType = InvalidGrantType
-    Revoked = Revoked
-    Expired = Expired
-
-    def response_data(self):
-        """Get the token data."""
-        now = datetime.datetime.utcnow()
-        expires_in = (self.access_token_expires_at - now).seconds
-        return {
-            'access_token': self.access_token,
-            'refresh_token': self.refresh_token,
-            'token_type': self.token_type,
-            'expires_in': expires_in
-        }
+    InvalidGrantType = InvalidGrantType # pylint:disable=invalid-name
+    Revoked = Revoked # pylint:disable=invalid-name
+    Expired = Expired # pylint:disable=invalid-name
 
     def get_user(self, db:Session=Closing[Provide[Container.closed_db]]):
+        """Get the user associated with this token."""
         return db.query(OAuth2Client).filter(
             OAuth2Client.id == self.client_id).first().user
 
@@ -72,27 +133,24 @@ class OAuth2Token(base.ModelBase):
 class OAuth2TokenManager():
     """OAuth2 Token object manager."""
 
-    def get_by_access_token(self, access_token: str, *,
+    @classmethod
+    def get_by_access_token(cls, access_token: str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Token]:
         """Get a token by the access token string."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         return db.query(OAuth2Token).filter(
             OAuth2Token.access_token == access_token).first()
 
-    def get_by_refresh_token(self, refresh_token: str, *,
+    @classmethod
+    def get_by_refresh_token(cls, refresh_token: str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Token]:
         """Get a token by the refresh token string."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         return db.query(OAuth2Token).filter(
             OAuth2Token.refresh_token == refresh_token).first()
 
-    def create(self, *,
+    @classmethod
+    def create(cls, *,
             grant_type:str,
             client_id:str,
             client_secret:str,
@@ -101,8 +159,7 @@ class OAuth2TokenManager():
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> OAuth2Token:
         """
-        Create a new token for the given data. Does not commit or close a
-        Session is explicitly provided.
+        Create a new token for the given data.
 
         Currently only supporting creation of client_credentials granted tokens
         and bearer token type:
@@ -151,9 +208,6 @@ class OAuth2TokenManager():
             * error_description (ascii only - a sentence or 2)
             * error_uri - link, e.g. to api docs
         """
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         if grant_type != 'client_credentials':
             raise OAuth2Token.InvalidGrantType
         client = oauth2_clients.get_by_client_id(client_id, db=db)
@@ -175,10 +229,10 @@ class OAuth2TokenManager():
 
         )
         db.add(token)
-        db.commit()
         return token
 
-    def refresh(self, *,
+    @classmethod
+    def refresh(cls, *,
             grant_type:str,
             refresh_token:str,
             access_lifetime:int,
@@ -188,7 +242,7 @@ class OAuth2TokenManager():
         """
         https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
 
-        Refresh the token. Does not commit/close Session if explicitly provided.
+        Refresh the token.
 
         TODO: implement refresh
 
@@ -214,12 +268,9 @@ class OAuth2TokenManager():
         ? is requests including client_id & secret in refresh requests?
         NO DOES NOT SEEM TO
         """
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
         if grant_type != 'refresh_token':
             raise OAuth2Token.InvalidGrantType
-        token = self.get_by_refresh_token(refresh_token, db=db)
+        token = cls.get_by_refresh_token(refresh_token, db=db)
         # TODO: ensure scope request is not expanded
         # TODO: do we need to check client auth? requests does not include
         #       client_id or secret in a refresh request

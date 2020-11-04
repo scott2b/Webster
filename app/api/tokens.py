@@ -1,33 +1,13 @@
 from spectree import Response
-from starlette.authentication import requires
 from starlette.responses import JSONResponse
-from pydantic import BaseModel
 from ..config import settings
 from ..orm.oauth2.client import OAuth2Client
 from ..orm.oauth2.token import OAuth2Token
+from ..orm.oauth2.token import TokenResponse, TokenRequest, TokenRefreshRequest
 from . import _app, ValidationErrorList
 
 
-class TokenRequest(BaseModel):
-    grant_type:str
-    client_id:str
-    client_secret:str
-
-
-class TokenRefreshRequest(BaseModel):
-    grant_type: str
-    refresh_token: str
-    access_lifetime: int
-    refresh_lifetime: int
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str
-    expires_in: int
-
-# OAuth2 spec seems to mandate form data for token request:
+# OAuth2 spec seems to mandate form data (not json) for a token request:
 # https://github.com/requests/requests-oauthlib/issues/244
 
 @_app.validate(json=None,
@@ -36,15 +16,12 @@ class TokenResponse(BaseModel):
                              HTTP_409=ValidationErrorList,
                              HTTP_422=ValidationErrorList), tags=['tokens'])
 async def token_refresh(request):
-    data = dict(await request.form())
-    data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
-    data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
-    if 'allow_redirects' in data:
-        del data['allow_redirects']
-    req = TokenRefreshRequest(**data) 
-    token = OAuth2Token.objects.refresh(**data)
-    return JSONResponse(token.response_data())
-
+    data = TokenRefreshRequest(**dict(await request.form())).dict()
+    token = OAuth2Token.objects.refresh(
+        access_lifetime = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS,
+        refresh_lifetime = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS,
+        **data)
+    return JSONResponse(token.dict(model=TokenResponse))
 
 
 @_app.validate(json=None,
@@ -53,14 +30,14 @@ async def token_refresh(request):
                              HTTP_409=ValidationErrorList,
                              HTTP_422=ValidationErrorList), tags=['tokens'])
 async def token(request):
-    data = dict(await request.form())
-    req = TokenRequest(**data)
-    data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
-    data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
+    data = TokenRequest(**dict(await request.form())).dict()
     try:
-        token = OAuth2Token.objects.create(**data)
+        token = OAuth2Token.objects.create(
+            access_lifetime = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS,
+            refresh_lifetime = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS,
+            **data)
     except (OAuth2Client.DoesNotExist, OAuth2Client.InvalidOAuth2Client,
             OAuth2Token.InvalidGrantType) as e:
         return JSONResponse({ 'message': str(e) }, status_code=403)
-    return JSONResponse(token.response_data())
+    return JSONResponse(token.dict(model=TokenResponse))
 

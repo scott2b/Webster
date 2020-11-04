@@ -8,6 +8,7 @@ not solve the problem of no `id` property existing on Base.
 Details about use of typing in FastAPI are here:
 https://fastapi.tiangolo.com/python-types/
 """
+import dataclasses
 from typing import Any, Dict, Generic, List, Optional, Protocol
 from typing import Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
@@ -19,7 +20,17 @@ import pydantic
 from ..containers import Container
 
 
+
+#def make_declarative_base(self):
+#    """Creates the declarative base."""
+#    # https://stackoverflow.com/a/22700629
+#    base = declarative_base(cls=Model, name='Model',
+#                            metaclass=_BoundDeclarativeMeta)
+#    base.query = _QueryProperty(self)
+#    return base
+
 ModelBase = declarative_base()
+
 
 class DoesNotExist(Exception): pass
 
@@ -28,6 +39,36 @@ class ModelExceptions():
 
     DoesNotExist = DoesNotExist
 
+
+class BaseBase(pydantic.BaseModel):
+    """
+    Default Base schema for a DataModel which just allows all fields given.
+    """
+
+    class Config:
+        extra = 'allow'
+
+
+class DataModel():
+    """Subclasses should be @dataclass annotated."""
+    base_schema = BaseBase
+    
+    def data_model(self, model=None):
+        if model is None:
+            model = self.base_schema
+        data = dataclasses.asdict(self)
+        data = model(**data)
+        return data
+
+    def dict(self, model=None):
+        """Return the validated data as a dictionary."""
+        _d = self.data_model(model=model)
+        return _d.dict()
+
+    def json(self, model=None):
+        """Return the validated data as a JSON string."""
+        _d = self.data_model(model=model)
+        return _d.json()
 
 
 ModelTypeVar = TypeVar("ModelTypeVar", bound=DeclarativeMeta, covariant=True)

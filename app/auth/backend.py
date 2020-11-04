@@ -3,9 +3,11 @@ from starlette.authentication import AuthenticationBackend, AuthCredentials, Sim
 from .. import orm
 from ..orm.oauth2.token import OAuth2Token
 from ..orm.db import session_scope
-from ..orm.user import User
+from ..orm.user import User, UserBase, UserResponse
 from .. import containers
 
+from dataclasses import dataclass
+import dataclasses
 
 class SessionAuthBackend(AuthenticationBackend):
 
@@ -22,6 +24,7 @@ class SessionAuthBackend(AuthenticationBackend):
             user_id = request.session['user_id']
             with session_scope() as db:
                 user = User.objects.get(user_id, db=db)
+                print(user.dict(model=UserResponse))
             #return AuthCredentials(['app_auth', 'api_auth']), user
             return AuthCredentials(['app_auth']), user
         if request.headers.get('authorization'):
