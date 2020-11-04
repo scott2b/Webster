@@ -11,6 +11,13 @@ class SessionAuthBackend(AuthenticationBackend):
 
     async def authenticate(self, request):
         print(containers.connection_count)
+        print(dir(request))
+        print(request.base_url)
+        print(request.url)
+        print(request.headers)
+        print(request.client)
+        print(request.keys())
+        print(request.scope)
         if 'user_id' in request.session:
             user_id = request.session['user_id']
             with session_scope() as db:

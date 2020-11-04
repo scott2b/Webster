@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SESSION_COOKIE: str = 'session'
     SESSION_EXPIRE_SECONDS: int = 60 * 60 * 24 * 10
     SESSION_SAME_SITE: str = 'lax' # lax, strict, or none
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    # ACCESS_TOKEN_EXPIRE_MINUTES: int = 30 # 60 * 24 * 8
     SERVER_NAME: str
     SERVER_HOST: AnyHttpUrl
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: Optional[str] = None
 
     # OAUTH
-    OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS: int = 300
+    OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS: int = 30 # 300
     OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS: int = 600
 
     @validator("EMAILS_FROM_NAME")

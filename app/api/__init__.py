@@ -1,3 +1,4 @@
+from typing import List, Optional
 from pydantic import BaseModel, Field, constr, validator
 from spectree import SpecTree, Response
 from spectree.plugins.starlette_plugin import StarlettePlugin, PAGES
@@ -54,7 +55,15 @@ class StatusEnum(str, Enum):
     ok = 'OK'
     err = 'ERR'
 
-from typing import List, Optional
+
+class ValidationError(BaseModel):
+    loc: List[str]
+    msg: str
+    type: str
+
+
+class ValidationErrorList(BaseModel):
+    __root__: List[ValidationError]
 
     
 
@@ -97,24 +106,10 @@ async def widget(request):
     return JSONResponse({ 'foo': 'bar' })
 
 
-async def token_refresh(request):
-    data = dict(await request.form())
-    data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
-    data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
-    token = oauth2_tokens.refresh(**data)
-    return JSONResponse(token.response_data())
-
-
-async def token(request):
-    data = dict(await request.form())
-    data['access_lifetime'] = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
-    data['refresh_lifetime'] = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
-    token = oauth2_tokens.create(**data)
-    return JSONResponse(token.response_data())
-
 
 
 from .clients import clients_get, clients_delete, client_list, client_post
+from .tokens import token, token_refresh
 
 
 routes = [
@@ -127,6 +122,7 @@ routes = [
     # tokens
     Route('/token', token, methods=['POST']),
     Route('/token-refresh', token_refresh, methods=['POST']),
+    #
     Route('/widget/', widget)
 ]
 

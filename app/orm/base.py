@@ -20,6 +20,16 @@ from ..containers import Container
 
 
 ModelBase = declarative_base()
+
+class DoesNotExist(Exception): pass
+
+
+class ModelExceptions():
+
+    DoesNotExist = DoesNotExist
+
+
+
 ModelTypeVar = TypeVar("ModelTypeVar", bound=DeclarativeMeta, covariant=True)
 
 class ModelTypeInterface(Protocol[ModelTypeVar]):

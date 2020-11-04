@@ -1,12 +1,13 @@
 from typing import List
 from pydantic import BaseModel
-from spectree import SpecTree, Response
+from spectree import Response
 from starlette.authentication import requires
 from starlette.responses import JSONResponse
 from ..orm.oauth2.client import OAuth2Client
 from ..orm.oauth2.client import OAuth2ClientCreate, OAuth2Base
 from ..orm.db import db_session, session_scope
 from . import _app, Message
+from . import ValidationErrorList
 
 
 class OAuth2ClientSchema(BaseModel):
@@ -19,16 +20,6 @@ class OAuth2ClientDelete(BaseModel):
 class OAuth2ClientResp(BaseModel):
     client_id: str
     client_secret: str
-
-
-class ValidationError(BaseModel):
-    loc: List[str]
-    msg: str
-    type: str
-
-
-class ValidationErrorList(BaseModel):
-    __root__: List[ValidationError]
 
 
 class OAuth2ClientList(BaseModel):

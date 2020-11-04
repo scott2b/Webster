@@ -6,6 +6,7 @@ import requests
 import time
 from requests.auth import HTTPBasicAuth
 from oauthlib.oauth2 import BackendApplicationClient
+from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from requests_oauthlib import OAuth2Session
 
 
@@ -18,14 +19,25 @@ client_secret = os.environ['CLIENT_SECRET']
 token_url = 'http://localhost:8000/token'
 
 
+#def raise_on_error(response):
+#    response.raise_for_status()
+#    return response
+
 
 
 
 client = BackendApplicationClient(client_id=client_id)
+#client.register_compliance_hook('access_token_response', raise_on_error)
 oauth = OAuth2Session(client=client)
-token = oauth.fetch_token(token_url=token_url, client_id=client_id, client_secret=client_secret, include_client_id=True)
-print(token)
 
+try:
+    token = oauth.fetch_token(token_url=token_url, client_id=client_id,
+        client_secret=client_secret, include_client_id=True)
+except MissingTokenError:
+    # oauthlib gives this stupid error regardless of the problem
+    print('Something went wrong, please check your client credentials.')
+    exit()
+print(token)
 
 
 refresh_url = 'http://localhost:8000/token-refresh'
@@ -41,7 +53,6 @@ r = client.get('http://localhost:8000/clients/yPTk4_qpfjwoKAC_FFvhrBpw_E-lIkMnr9
 #r = client.delete('http://localhost:8000/client', json={'client_id':'foo'})
 print(r.status_code)
 print(r.json())
-exit()
 
 
 

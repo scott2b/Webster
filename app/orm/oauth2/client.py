@@ -50,7 +50,12 @@ class OAuth2ClientUpdate(OAuth2Base):
     name: str
 
 
-class OAuth2Client(base.ModelBase):
+class InvalidOAuth2Client(Exception): pass
+
+from ..base import ModelExceptions
+
+
+class OAuth2Client(base.ModelBase, ModelExceptions):
     """OAuth2 API Client model.
 
     TODO: user should be non-nullable
@@ -72,6 +77,11 @@ class OAuth2Client(base.ModelBase):
         Integer, ForeignKey('users.id', ondelete='CASCADE')
     )
     user = relationship('User') # type: ignore
+
+    InvalidOAuth2Client = InvalidOAuth2Client
+
+    def compare_secret(self, secret):
+        return secrets.compare_digest(secret, self.client_secret)
 
 
 #class OAuth2ClientManager():
@@ -116,7 +126,7 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
         # Dep-inj not working with classmethod
         # https://github.com/ets-labs/python-dependency-injector/issues/318
         # pylint: disable=no-self-use
-        return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
+        return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).one_or_none()
 
     def get_by_client_id_user(self, client_id: str, user_id, *,
             db:Session=Closing[Provide[Container.closed_db]]

@@ -19,6 +19,9 @@ from . import (
 )
 
 
+class InvalidGrantType(Exception): pass
+
+
 class OAuth2Token(base.ModelBase):
     """OAuth2 token model with access and refresh data."""
     # pylint: disable=too-few-public-methods
@@ -43,6 +46,8 @@ class OAuth2Token(base.ModelBase):
     access_token_expires_at = Column(DateTime, nullable=False)
     refresh_token_expires_at = Column(DateTime)
     client = relationship('OAuth2Client') # type: ignore
+
+    InvalidGrantType = InvalidGrantType
 
     def response_data(self):
         """Get the token data."""
@@ -148,13 +153,12 @@ class OAuth2TokenManager():
         # https://github.com/ets-labs/python-dependency-injector/issues/318
         # pylint: disable=no-self-use
         if grant_type != 'client_credentials':
-            raise Exception('Invalid grant type')
+            raise OAuth2Token.InvalidGrantType
         client = oauth2_clients.get_by_client_id(client_id, db=db)
         if not client:
-            raise Exception('API client not found')
-        valid = secrets.compare_digest(client_secret, client.client_secret)
-        if not valid:
-            raise Exception('Invalid client')
+            raise OAuth2Client.DoesNotExist
+        if not client.compare_secret(client_secret):
+            raise OAuth2Client.InvalidOAuth2Client
         access_expires = datetime.datetime.utcnow() \
             + datetime.timedelta(seconds=access_lifetime)
         refresh_expires = datetime.datetime.utcnow() \
@@ -212,7 +216,7 @@ class OAuth2TokenManager():
         # https://github.com/ets-labs/python-dependency-injector/issues/318
         # pylint: disable=no-self-use
         if grant_type != 'refresh_token':
-            raise Exception
+            raise Exception('Invalid grant type')
         token = self.get_by_refresh_token(refresh_token, db=db)
         # TODO: ensure scope request is not expanded
         # TODO: do we need to check client auth? requests does not include
