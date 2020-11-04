@@ -167,7 +167,7 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
         ) -> bool:
         q = db.query(OAuth2Client).filter(
             OAuth2Client.name == name,
-            User.id == user.id)
+            OAuth2Client.user == user)
         return db.query(q.exists()).scalar()
             
 

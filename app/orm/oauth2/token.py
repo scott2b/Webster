@@ -139,7 +139,7 @@ class OAuth2TokenManager():
         ) -> Optional[OAuth2Token]:
         """Get a token by the access token string."""
         return db.query(OAuth2Token).filter(
-            OAuth2Token.access_token == access_token).first()
+            OAuth2Token.access_token == access_token).one_or_none()
 
     @classmethod
     def get_by_refresh_token(cls, refresh_token: str, *,
@@ -147,7 +147,7 @@ class OAuth2TokenManager():
         ) -> Optional[OAuth2Token]:
         """Get a token by the refresh token string."""
         return db.query(OAuth2Token).filter(
-            OAuth2Token.refresh_token == refresh_token).first()
+            OAuth2Token.refresh_token == refresh_token).one_or_none()
 
     @classmethod
     def create(cls, *,

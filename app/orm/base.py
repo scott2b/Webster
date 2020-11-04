@@ -32,12 +32,18 @@ from ..containers import Container
 ModelBase = declarative_base()
 
 
-class DoesNotExist(Exception): pass
+class DoesNotExist(Exception):
+    """Object does not exist."""
+
+
+class Exists(Exception):
+    """Object already exists."""
 
 
 class ModelExceptions():
 
     DoesNotExist = DoesNotExist
+    Exists = Exists
 
 
 class BaseBase(pydantic.BaseModel):
