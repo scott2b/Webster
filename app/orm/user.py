@@ -1,4 +1,5 @@
 """User ORM model and object manager."""
+from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
 from dependency_injector.wiring import Closing, Provide
 from sqlalchemy import Boolean, Column, Integer, String
@@ -9,7 +10,17 @@ from ..schemas.user import UserCreate, UserUpdate
 from ..containers import Container
 
 
-class User(base.ModelBase):
+@dataclass
+class UserSchema():
+    id: int
+    full_name: str
+    email: str
+    hashed_password: str
+    is_active: bool
+    is_superuser: bool
+
+
+class User(UserSchema, base.ModelBase):
     """User model."""
     # pylint: disable=too-few-public-methods
 

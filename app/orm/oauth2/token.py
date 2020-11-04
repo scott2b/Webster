@@ -20,6 +20,8 @@ from . import (
 
 
 class InvalidGrantType(Exception): pass
+class Revoked(Exception): pass
+class Expired(Exception): pass
 
 
 class OAuth2Token(base.ModelBase):
@@ -48,6 +50,8 @@ class OAuth2Token(base.ModelBase):
     client = relationship('OAuth2Client') # type: ignore
 
     InvalidGrantType = InvalidGrantType
+    Revoked = Revoked
+    Expired = Expired
 
     def response_data(self):
         """Get the token data."""
@@ -63,8 +67,6 @@ class OAuth2Token(base.ModelBase):
     def get_user(self, db:Session=Closing[Provide[Container.closed_db]]):
         return db.query(OAuth2Client).filter(
             OAuth2Client.id == self.client_id).first().user
-             
-        
 
 
 class OAuth2TokenManager():
@@ -216,18 +218,17 @@ class OAuth2TokenManager():
         # https://github.com/ets-labs/python-dependency-injector/issues/318
         # pylint: disable=no-self-use
         if grant_type != 'refresh_token':
-            raise Exception('Invalid grant type')
+            raise OAuth2Token.InvalidGrantType
         token = self.get_by_refresh_token(refresh_token, db=db)
         # TODO: ensure scope request is not expanded
         # TODO: do we need to check client auth? requests does not include
         #       client_id or secret in a refresh request
         if not token:
-            raise Exception('Refresh token not found.')
+            raise OAuth2Token.DoesNotExist
         if token.revoked:
-            raise Exception('Refresh token revoked.')
+            raise OAuth2Token.Revoked
         if datetime.datetime.now() > token.refresh_token_expires_at:
-            raise Exception('Refresh token expired:',
-                (token.refresh_token_expires_at - datetime.datetime.utcnow()).seconds)
+            raise OAuth2Token.Expired
         token.access_token = create_key(ACCESS_TOKEN_BYTES)
         token.refresh_token = create_key(REFRESH_TOKEN_BYTES)
         now = datetime.datetime.utcnow()
@@ -236,7 +237,6 @@ class OAuth2TokenManager():
         token.refresh_token_expires_at = now \
             + datetime.timedelta(seconds=refresh_lifetime)
         db.add(token)
-        db.commit()
         return token
 
 oauth2_tokens = OAuth2TokenManager()
