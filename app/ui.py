@@ -77,28 +77,26 @@ class APIClientForm(CSRFForm):
         self.request = request
         super().__init__(data, *args, **kwargs)
 
-    def validate(self):
-        print('Validating')
-        v = super().validate()
-        print('valid', v)
-        if not v:
-            return False
-        obj = OAuth2ClientCreate(
-            name=self.name.data,
-            user=self.request.user
-        )
-        _client = None
-        with session_scope() as db:
-            try:
-                _client = OAuth2Client.objects.create(obj_in=obj, db=db)
-            except exc.IntegrityError:
-                db.rollback()
-                self.request.session['messages'] = ['Please provide a unique client name.']
-                v = False
-        if _client and v:
-            return True
-        else:
-            return False
+    def validate_name(self, field):
+        exists = OAuth2Client.objects.exists(field.data, self.request.user) 
+        if exists:
+            raise validators.ValidationError(
+                'Unique application name required.')
+
+
+#def create_client(name, user):
+#    obj = OAuth2ClientCreate(
+#        name=name,
+#        user=user
+#    )
+#    _client = None
+#    with session_scope() as db:
+#        try:
+#            _client = OAuth2Client.objects.create(obj_in=obj, db=db)
+#        except exc.IntegrityError:
+#            db.rollback()
+#            self.request.session['messages'] = ['Please provide a unique client name.']
+#            v = False
 
 
 async def login(request):
@@ -121,7 +119,7 @@ def logout(request):
 
 
 @requires('app_auth', status_code=403)
-async def add_api_client(request):
+async def client_form(request):
     data = await request.form()
     form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
     if request.method == 'POST' and 'delete' in data:
@@ -129,11 +127,13 @@ async def add_api_client(request):
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
     if request.method == 'POST' and form.validate():
+        obj = OAuth2ClientCreate(
+            name=form.name.data,
+            user=request.user
+        )
+        _client = OAuth2Client.objects.create(obj_in=obj)
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
-    elif request.method == 'DELETE':
-        print(data)
-        exit()
     clear_messages = partial(_clear_messages, request)
     return templates.TemplateResponse('_client.html', {
         'request': request,
@@ -142,32 +142,6 @@ async def add_api_client(request):
     })
 
 from starlette.responses import JSONResponse
-
-@requires('api_auth', status_code=403)
-async def client(request):
-    data = await request.form()
-    print('data', data)
-    #form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
-    #form.Meta.csrf = False
-    if request.method == 'DELETE':
-        OAuth2Client.objects.delete_user_client(data['client_id'], request.user)
-        #next = request.query_params.get('next', '/')
-        #return RedirectResponse(url=next, status_code=302)
-        return JSONResponse({ 'status': 'DELETED' })
-    if request.method == 'POST':
-        obj = OAuth2ClientCreate(
-            name=data['name'],
-            user=request.scope['token'].get_user()
-        )
-        _client = None
-        with session_scope() as db:
-            try:
-                _client = OAuth2Client.objects.create(obj_in=obj, db=db)
-                return JSONResponse({ 'client_id': _client.client_id, 'user': _client.user.email })
-            except exc.IntegrityError:
-                db.rollback()
-    else:
-        return JSONResponse({ 'status': 'not good' })
 
 
 async def homepage(request):

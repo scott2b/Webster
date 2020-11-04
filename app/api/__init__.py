@@ -1,23 +1,23 @@
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field, constr, validator
 from spectree import SpecTree, Response
 from spectree.plugins.starlette_plugin import StarlettePlugin, PAGES
 from starlette.applications import Starlette
 from starlette.authentication import requires
+from sqlalchemy import exc
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
-from .config import settings
-from .orm.oauth2.token import oauth2_tokens
-from .orm.db import db_session, session_scope
-
-
+from ..config import settings
+from ..orm.oauth2.token import oauth2_tokens
+from ..orm.db import db_session, session_scope
 from dependency_injector.wiring import Closing
 from dependency_injector.wiring import Provide
-from .containers import Container
+from ..containers import Container
 
 UI_ROUTES = {
   'redoc': 'api',
-  'swagger': 'swagger'
+  # 'swagger': 'swagger' # Swagger not yet supported due to need to sort out
+                         # authentication and potentially csrf
 }
 
 class CustomPlugin(StarlettePlugin):
@@ -32,19 +32,31 @@ class CustomPlugin(StarlettePlugin):
         except: # some weirdness in the spectree library
             pass
         for ui in PAGES:
-            self.app.add_route(
-                f'/{self.config.PATH}/{UI_ROUTES[ui]}',
-                lambda request, ui=ui: HTMLResponse(
-                    PAGES[ui].format(self.config.spec_url)
-                ),
-            )
+            if ui in UI_ROUTES:
+                self.app.add_route(
+                    f'/{self.config.PATH}/{UI_ROUTES[ui]}',
+                    lambda request, ui=ui: HTMLResponse(
+                        PAGES[ui].format(self.config.spec_url)
+                    ),
+                )
 
 _app = SpecTree('starlette', path='docs', backend=CustomPlugin, MODE='strict')
 
 
 class Message(BaseModel):
-    text: str
+    message: str
 
+
+from enum import Enum, IntEnum
+
+
+class StatusEnum(str, Enum):
+    ok = 'OK'
+    err = 'ERR'
+
+from typing import List, Optional
+
+    
 
 class Profile(BaseModel):
     name: constr(min_length=2, max_length=40)  # Constrained Str
@@ -54,6 +66,18 @@ class Profile(BaseModel):
         lt=150,
         description='user age(Human)'
     )
+
+
+class Cookie(BaseModel):
+    """Cookie model. Theoretically, we can pass this to SpecTree's validate
+    decorator. However, Swagger does not currently support automatic
+    submission of cookies with requests from the Swagger UI.
+    """
+    csrf_token: str
+
+    @validator('csrf_token')
+    def csrf_token_is_valid(cls, v):
+        pass # TODO: implement authentication for Swagger support
 
 
 @_app.validate(json=Profile, resp=Response(HTTP_200=Message, HTTP_403=None), tags=['api'])
@@ -68,27 +92,9 @@ async def user_profile(request):
     return JSONResponse({'text': 'it works'})
 
 
-
 @requires(['api_auth'], status_code=403)
 async def widget(request):
     return JSONResponse({ 'foo': 'bar' })
-
-
-
-"""
-Headers({'host': 'localhost:8000', 'user-agent': 'python-requests/2.24.0', 'accept-encoding': 'gzip, deflate', 'accept': '*/*', 'connection': 'keep-alive', 'authorization': 'OAuth oauth_nonce="o8UwM6s2yCqZKjt5lhDMKhg0Uqk8Kw", oauth_timestamp="1603486212", oauth_version="1.0", oauth_signature_method="HMAC-SHA1", oauth_consumer_key="YOUR-CLIENT-ID", oauth_token="oauth_token", oauth_signature="PRtLO8T8l2HyccoIeGGx40O1Tcs%3D"'})
-"""
-
-def authorize(request):
-    print(request.headers)
-    #grant = server.validate_consent_request(request, end_user=request.user)
-    #context = dict(grant=grant, user=request.user)
-    #return render(request, 'authorize.html', context)
-    #if is_user_confirmed(request):
-    #    # granted by resource owner
-    #    return server.create_authorization_response(request, grant_user=request.user)
-    ## denied by resource owner
-    #return server.create_authorization_response(request, grant_user=None)
 
 
 async def token_refresh(request):
@@ -107,14 +113,18 @@ async def token(request):
     return JSONResponse(token.response_data())
 
 
-async def client(request):
-    data = dict(await request.form())
-    
+
+from .clients import clients_get, clients_delete, client_list, client_post
 
 
 routes = [
     Route('/user', user_profile, methods=['POST']),
-    Route('/auth', authorize, methods=['GET']),
+    # clients
+    Route('/clients/{client_id:str}', clients_get, methods=['GET']),
+    Route('/clients/{client_id:str}', clients_delete, methods=['DELETE']),
+    Route('/clients', client_list, methods=['GET']),
+    Route('/client', client_post, methods=['POST']),
+    # tokens
     Route('/token', token, methods=['POST']),
     Route('/token-refresh', token_refresh, methods=['POST']),
     Route('/widget/', widget)

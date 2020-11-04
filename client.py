@@ -2,12 +2,11 @@
 https://requests-oauthlib.readthedocs.io/en/latest/oauth2_workflow.html#backend-application-flow
 """
 import os
+import requests
 import time
 from requests.auth import HTTPBasicAuth
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
-
-
 
 
 def token_saver(token):
@@ -35,7 +34,12 @@ extra = {}
 client = OAuth2Session(client_id, token=token, auto_refresh_url=refresh_url,
     auto_refresh_kwargs=extra, token_updater=token_saver)
 
-r = client.post('http://localhost:8000/client2', data={'name':'foo'})
+#r = client.get('http://localhost:8000/clients')
+r = client.get('http://localhost:8000/clients/yPTk4_qpfjwoKAC_FFvhrBpw_E-lIkMnr9_TacfNyF4')
+#r = client.post('http://localhost:8000/client/', json={'name':'bat'})
+#r = client.delete('http://localhost:8000/client', json={'client_id':'-RkO_-eFPV_OHuBeSlikYI6XkGPhvF-RQ0Fxd9HxNIE'})
+#r = client.delete('http://localhost:8000/client', json={'client_id':'foo'})
+print(r.status_code)
 print(r.json())
 exit()
 

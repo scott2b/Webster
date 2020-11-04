@@ -148,3 +148,21 @@ usable by the caller, the injected Session must be created with `expire_on_commi
 so that the object is available after the session is closed. Also, this should
 only be used with thread-local session scope as exceptions cannot be caught by
 the service provider.
+
+
+## API documentation
+
+Currently, only redoc is implemented. Swagger requires authentication, which
+has not yet been sorted out.
+
+SpecTree will let us pass a pydantic validation model to validate as the
+`cookies` parameter. However, [Swagger v3 does not yet support automatically
+passing cookies](https://github.com/swagger-api/swagger-ui/issues/2895). Thus,
+we would need to manually submit cookies via the Swagger UI, or integrate oauth
+into how we present swagger.
+
+
+
+ * The openapi spec is available at /docs/openapi.json
+
+ * Redoc is at /docs/api

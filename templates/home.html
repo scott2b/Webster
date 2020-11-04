@@ -83,7 +83,7 @@ input {
         <p><strong>NAME:</strong> {{ client.name }}</p>
         <p><strong>ID:</strong> {{ client.client_id }}</p>
         <p><strong>SECRET:</strong> {{ client.client_secret }}</p>
-        <form action="/client?next=/" method="POST">
+        <form action="/client-form?next=/" method="POST">
             <input type="hidden" name="delete" value="delete" />
             <input type="hidden" name="client_id" value="{{client.client_id}}" />
             <input type="submit" value="Delete" />
@@ -94,7 +94,7 @@ input {
     {% endif %}
     <h3>Create a new API client:</h3>
     {% with form=client_form %}
-        {% with action='/client?next=/' %}
+        {% with action='/client-form?next=/' %}
             {% include "_client.html" %}
         {% endwith %}
     {% endwith %}

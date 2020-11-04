@@ -118,6 +118,17 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
         # pylint: disable=no-self-use
         return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
 
+    def get_by_client_id_user(self, client_id: str, user_id, *,
+            db:Session=Closing[Provide[Container.closed_db]]
+        ) -> Optional[OAuth2Client]:
+        """Get an API client by client ID."""
+        # Dep-inj not working with classmethod
+        # https://github.com/ets-labs/python-dependency-injector/issues/318
+        # pylint: disable=no-self-use
+        return db.query(OAuth2Client).filter(
+            OAuth2Client.client_id == client_id,
+            OAuth2Client.user_id == user_id).first()
+
     def get_by_user_id(self, user_id:int, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> List[OAuth2Client]:
@@ -142,6 +153,19 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
             return True
         else:
             return False
+
+    def exists(self, name:str, user:User, *,
+            db:Session=Closing[Provide[Container.closed_db]]
+        ) -> bool:
+        print('name:', name)
+        print('user:', user)
+        q = db.query(OAuth2Client).filter(
+            OAuth2Client.name == name,
+            User.id == user.id)
+        #print('FRIST OBJ')
+        #print(q.first())
+        return db.query(q.exists()).scalar()
+            
 
 
 oauth2_clients = OAuth2ClientManager(OAuth2Client)
