@@ -134,8 +134,7 @@ class OAuth2Client(base.ModelBase, base.DataModel):
         default=datetime.datetime.utcnow)
     secret_expires_at:datetime.datetime = Column(Integer, nullable=True)
     user_id:int = Column(
-        Integer, ForeignKey('users.id', ondelete='CASCADE')
-    )
+        Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     user = relationship('User') # type: ignore
 
     InvalidOAuth2Client = InvalidOAuth2Client

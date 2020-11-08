@@ -5,7 +5,7 @@ from sqlalchemy import pool
 from alembic import context
 
 sys.path = ['', '..'] + sys.path[1:]
-from app.orm.base import Base
+from app.orm.base import ModelBase
 from app.orm.user import User
 from app.orm.oauth2.client import OAuth2Client
 from app.orm.oauth2.token import OAuth2Token
@@ -23,7 +23,7 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-target_metadata = Base.metadata
+target_metadata = ModelBase.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
