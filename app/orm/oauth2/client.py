@@ -1,10 +1,11 @@
 """
 https://docs.authlib.org/en/latest/flask/2/authorization-server.html
 """
-#from __future__ import annotations # for returning self type from classmethod. remove in Py3.10
 import datetime
 import secrets
+from dataclasses import dataclass
 from typing import List, Optional
+from pydantic import BaseModel, validator
 from dependency_injector.wiring import Provide, Closing
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship, Session
@@ -25,15 +26,16 @@ def create_key(nbytes):
     return secrets.token_urlsafe(nbytes)
 
 
-from typing import Optional
-from pydantic import BaseModel, EmailStr
+### Schema
 
-
-class OAuth2Base(BaseModel):
+class OAuth2ClientBase(BaseModel):
+    """OAuth2 API client base validator."""
 
     class Config:
+        """Config OAuth2ClientBase."""
         arbitrary_types_allowed = True
 
+    id: Optional[int]
     name: Optional[str]
     client_id: Optional[str]
     client_secret: Optional[str]
@@ -42,20 +44,75 @@ class OAuth2Base(BaseModel):
     user: Optional[User]
 
 
-class OAuth2ClientCreate(OAuth2Base):
+class OAuth2ClientCreate(OAuth2ClientBase):
+    """OAuth2 API client create validator."""
+
+    name: str
+    user: User
+    client_id: Optional[str]
+    client_secret: Optional[str]
+
+    @validator('client_id', always=True)
+    @classmethod
+    def generate_client_id(cls, v):
+        """Generate the client ID."""
+        return create_key(CLIENT_ID_BYTES)
+
+    @validator('client_secret', always=True)
+    @classmethod
+    def generate_client_secret(cls, v):
+        """Generate the client secret."""
+        return create_key(CLIENT_SECRET_BYTES)
+
+
+class OAuth2ClientUpdate(OAuth2ClientBase):
+    """OAuth2 API client update name."""
     name: str
 
 
-class OAuth2ClientUpdate(OAuth2Base):
+class InvalidOAuth2Client(Exception):
+    """Invalid OAuth2 client."""
+
+    
+class OAuth2ClientRequest(BaseModel):
     name: str
 
 
-class InvalidOAuth2Client(Exception): pass
+class OAuth2ClientResponse(BaseModel):
 
-from ..base import ModelExceptions
+    class Config:
+        """Configure TokenCreate"""
+        extra = 'ignore'
+
+    name: str
+    created_at: datetime.datetime
+    client_id: str
+    client_secret: str
+    secret_expires_at: Optional[datetime.datetime]
+
+    @validator('created_at')
+    @classmethod
+    def serialize_created_at(cls, v):
+        """Convert the created_at field to a string."""
+        if v:
+            return v.isoformat()
+    
+    @validator('secret_expires_at')
+    @classmethod
+    def serialize_secret_expires_at(cls, v):
+        """Convert the secret_expires_at field to a string."""
+        if v:
+            return v.isoformat()
+
+class OAuth2ClientListResponse(BaseModel):
+    clients: List[OAuth2ClientResponse]
 
 
-class OAuth2Client(base.ModelBase, ModelExceptions):
+
+### ORM
+
+@dataclass
+class OAuth2Client(base.ModelBase, base.DataModel):
     """OAuth2 API Client model.
 
     TODO: user should be non-nullable
@@ -67,13 +124,16 @@ class OAuth2Client(base.ModelBase, ModelExceptions):
         UniqueConstraint('name', 'user_id', name='name_user_id_unique_1'),
     )
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False, default='Primary')
-    client_id = Column(String(CLIENT_ID_MAX_CHARS), unique=True, index=True, nullable=False)
-    client_secret = Column(String(CLIENT_SECRET_MAX_CHARS), unique=True, index=True, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    secret_expires_at = Column(Integer, nullable=True)
-    user_id = Column(
+    id:int = Column(Integer, primary_key=True)
+    name:str = Column(String(100), nullable=False, default='Primary')
+    client_id:str = Column(String(CLIENT_ID_MAX_CHARS), unique=True,
+        index=True, nullable=False)
+    client_secret:str = Column(String(CLIENT_SECRET_MAX_CHARS), unique=True,
+        index=True, nullable=False)
+    created_at:datetime.datetime = Column(DateTime, nullable=False,
+        default=datetime.datetime.utcnow)
+    secret_expires_at:datetime.datetime = Column(Integer, nullable=True)
+    user_id:int = Column(
         Integer, ForeignKey('users.id', ondelete='CASCADE')
     )
     user = relationship('User') # type: ignore
@@ -81,80 +141,54 @@ class OAuth2Client(base.ModelBase, ModelExceptions):
     InvalidOAuth2Client = InvalidOAuth2Client
 
     def compare_secret(self, secret):
+        """Compare a given secret with the secret for this instance.
+
+        Returns True if they are the same.
+        """
         return secrets.compare_digest(secret, self.client_secret)
 
 
-#class OAuth2ClientManager():
-
-class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAuth2ClientUpdate]):
+class OAuth2ClientManager(
+        base.CRUDManager[OAuth2Client,
+        OAuth2ClientCreate,
+        OAuth2ClientUpdate]):
     """OAuth2 API object manager."""
 
-    
-    #def _create(self, user:User, name:str, *,
-    #        db:Session=Closing[Provide[Container.closed_db]]
-    #    ) -> OAuth2Client:
-    #    """Create an API client for the given user."""
-    #    # Dep-inj not working with classmethod
-    #    # https://github.com/ets-labs/python-dependency-injector/issues/318
-    #    # pylint: disable=no-self-use
-    #    db_obj = OAuth2Client(
-    #        name=name,
-    #        client_id=create_key(CLIENT_ID_BYTES),
-    #        client_secret=create_key(CLIENT_SECRET_BYTES),
-    #        user=user
-    #    )
-    #    db.add(db_obj)
-    #    return db_obj
-
-    @classmethod
-    def create(
-            cls, *,
-            obj_in: OAuth2ClientCreate,
-            db:Session = Closing[Provide[Container.closed_db]]) -> User:
-        """Create a new user in the database."""
-        db_obj = OAuth2Client(
-            name=obj_in.name,
-            client_id=create_key(CLIENT_ID_BYTES),
-            client_secret=create_key(CLIENT_SECRET_BYTES),
-            user=obj_in.user
-        )
-        db.add(db_obj)
-        return db_obj
 
     @classmethod
     def get_by_client_id(cls, client_id: str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Client]:
         """Get an API client by client ID."""
-        return db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).one_or_none()
+        return db.query(OAuth2Client).filter(
+            OAuth2Client.client_id == client_id).one_or_none()
 
     @classmethod
-    def get_by_client_id_user(cls, client_id: str, user_id, *,
+    def get_for_user(cls, user:User, client_id: str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Client]:
         """Get an API client by client ID."""
-        # Dep-inj not working with classmethod
-        # https://github.com/ets-labs/python-dependency-injector/issues/318
-        # pylint: disable=no-self-use
+        #obj = OAuth2ClientRetrieve(user=user, client_id=client_id)
+        print('GET FOR USER', user, client_id)
         return db.query(OAuth2Client).filter(
             OAuth2Client.client_id == client_id,
-            OAuth2Client.user_id == user_id).first()
+            OAuth2Client.user == user).one_or_none()
 
     @classmethod
-    def get_by_user_id(cls, user_id:int, *,
+    def fetch_for_user(cls, user:User, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> List[OAuth2Client]:
         """Get the API clients for the user."""
-        return db.query(OAuth2Client).filter(OAuth2Client.user_id==user_id).all()
+        return db.query(OAuth2Client).filter(OAuth2Client.user==user).all()
 
     @classmethod
-    def delete_user_client(cls, client_id:str, user:User, *,
+    def delete_for_user(cls, user:User, client_id:str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> bool:
         """Delete the specified API client."""
         obj = db.query(OAuth2Client).filter(
             OAuth2Client.client_id == client_id,
-            User.id==user.id).first()
+            OAuth2Client.user==user).one_or_none()
         if obj:
             db.delete(obj)
             return True
@@ -162,14 +196,14 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client, OAuth2ClientCreate, OAu
             return False
 
     @classmethod
-    def exists(cls, name:str, user:User, *,
+    def exists(cls, user:User, name:str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> bool:
+        """Return True if a client with this name exists for the given user."""
         q = db.query(OAuth2Client).filter(
             OAuth2Client.name == name,
             OAuth2Client.user == user)
         return db.query(q.exists()).scalar()
-            
 
 
 oauth2_clients = OAuth2ClientManager(OAuth2Client)

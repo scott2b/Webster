@@ -68,7 +68,7 @@ class LoginForm(CSRFForm):
         else:
             return False
 
-from .orm.oauth2.client import OAuth2ClientCreate, OAuth2Base
+from .orm.oauth2.client import OAuth2ClientCreate
 
 class APIClientForm(CSRFForm):
     name = StringField('Name')
@@ -78,25 +78,10 @@ class APIClientForm(CSRFForm):
         super().__init__(data, *args, **kwargs)
 
     def validate_name(self, field):
-        exists = OAuth2Client.objects.exists(field.data, self.request.user) 
+        exists = OAuth2Client.objects.exists(self.request.user, field.data) 
         if exists:
             raise validators.ValidationError(
                 'Unique application name required.')
-
-
-#def create_client(name, user):
-#    obj = OAuth2ClientCreate(
-#        name=name,
-#        user=user
-#    )
-#    _client = None
-#    with session_scope() as db:
-#        try:
-#            _client = OAuth2Client.objects.create(obj_in=obj, db=db)
-#        except exc.IntegrityError:
-#            db.rollback()
-#            self.request.session['messages'] = ['Please provide a unique client name.']
-#            v = False
 
 
 async def login(request):
@@ -123,15 +108,12 @@ async def client_form(request):
     data = await request.form()
     form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
     if request.method == 'POST' and 'delete' in data:
-        OAuth2Client.objects.delete_user_client(data['client_id'], request.user)
+        OAuth2Client.objects.delete_for_user(request.user, data['client_id'])
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
     if request.method == 'POST' and form.validate():
-        obj = OAuth2ClientCreate(
-            name=form.name.data,
-            user=request.user
-        )
-        _client = OAuth2Client.objects.create(obj_in=obj)
+        _client = OAuth2Client.objects.create_for_user(
+            request.user, form.name.data)
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
     clear_messages = partial(_clear_messages, request)
@@ -151,7 +133,7 @@ async def homepage(request):
     client_form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
     if request.user.is_authenticated:
         print('user id', request.user.id)
-        api_clients = OAuth2Client.objects.get_by_user_id(request.user.id)
+        api_clients = OAuth2Client.objects.fetch_for_user(request.user)
     else:
         api_clients = []
     clear_messages = partial(_clear_messages, request)

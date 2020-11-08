@@ -13,21 +13,13 @@ from typing import Any, Dict, Generic, List, Optional, Protocol
 from typing import Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from dependency_injector.wiring import Provide, Closing
 import pydantic
 from ..containers import Container
 
-
-
-#def make_declarative_base(self):
-#    """Creates the declarative base."""
-#    # https://stackoverflow.com/a/22700629
-#    base = declarative_base(cls=Model, name='Model',
-#                            metaclass=_BoundDeclarativeMeta)
-#    base.query = _QueryProperty(self)
-#    return base
 
 ModelBase = declarative_base()
 
@@ -50,12 +42,11 @@ class BaseBase(pydantic.BaseModel):
     """
     Default Base schema for a DataModel which just allows all fields given.
     """
-
     class Config:
         extra = 'allow'
 
 
-class DataModel():
+class DataModel(ModelExceptions):
     """Subclasses should be @dataclass annotated."""
     base_schema = BaseBase
     
@@ -100,7 +91,7 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         CRUD base object with default methods to Create, Read, Update, Delete.
         **Parameters**
-        * `model`: An SQLAlchemy model class
+        * `model`: An SQLAlchemy model class which also inherits from DataModel
         * `schema`: A Pydantic model (schema) class
         """
         self.model = model
@@ -111,9 +102,10 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """Get an instance of ModelType by id."""
         return db.query(self.model).filter(self.model.id == id).first()
 
-    def get_multi(
+    def fetch(
             self, *, skip:int = 0, limit:int = 100,
-            db:Session = Closing[Provide[Container.closed_db]]) -> List[ModelType]:
+            db:Session = Closing[Provide[Container.closed_db]]
+        ) -> List[ModelType]:
         """Get instances of ModelType.
 
         skip: Query offset
@@ -122,13 +114,18 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db.query(self.model).offset(skip).limit(limit).all()
 
     def create(
-            self, *, obj_in: CreateSchemaType,
+            self, obj_in: CreateSchemaType, *,
             db:Session = Closing[Provide[Container.closed_db]]) -> ModelType:
         """Save an instance of ModelType in the database."""
-        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data = obj_in.dict()
         db_obj = self.model(**obj_in_data)  # type: ignore
-        db.add(db_obj)
-        return db_obj
+        try:
+            db.add(db_obj)
+            db.commit()
+            return db_obj
+        except exc.IntegrityError:
+            db.rollback()
+            raise self.model.Exists
 
     def update(
             self, *,
@@ -136,6 +133,7 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
             db:Session = Closing[Provide[Container.closed_db]]) -> ModelType:
         """Update the data in the database."""
+        raise Exception('Not implemented')
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
             update_data = obj_in
@@ -147,12 +145,14 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         db.add(db_obj)
+        db.commit()
         return db_obj
 
     def delete(
             self, *, id: int,  # pylint:disable=redefined-builtin
             db:Session = Closing[Provide[Container.closed_db]]) -> ModelType:
         """Delete from the database by id."""
+        raise Exception('Not implemented')
         obj = db.query(self.model).get(id)
         db.delete(obj)
         return obj

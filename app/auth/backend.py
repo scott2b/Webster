@@ -32,10 +32,14 @@ class SessionAuthBackend(AuthenticationBackend):
             if bearer[0] != 'Bearer':
                 return
             bearer = bearer[1]
+            print('BEARER', bearer)
             token = OAuth2Token.objects.get_by_access_token(bearer)
+            print('TOKEN by access', token)
             if token.revoked:
+                print('REVOKED!')
                 raise Exception
             if datetime.datetime.utcnow() > token.access_token_expires_at:
+                print('EXPIRED')
                 raise Exception
             request.scope['token'] = token
             return AuthCredentials(['api_auth']), None

@@ -24,11 +24,10 @@ token_url = 'http://localhost:8000/token'
 #    return response
 
 
-
-
 client = BackendApplicationClient(client_id=client_id)
 #client.register_compliance_hook('access_token_response', raise_on_error)
 oauth = OAuth2Session(client=client)
+
 
 try:
     token = oauth.fetch_token(token_url=token_url, client_id=client_id,
@@ -47,6 +46,29 @@ extra = {}
 client = OAuth2Session(client_id, token=token, auto_refresh_url=refresh_url,
     auto_refresh_kwargs=extra, token_updater=token_saver)
 
+
+# Get the list of clients
+r = client.get('http://localhost:8000/clients')
+print(r.status_code)
+print(r.json())
+
+print('CREATING A CLIENT')
+r = client.post('http://localhost:8000/clients', json={'name':'bat'})
+print(r.status_code)
+print(r.json())
+new_client_id = r.json()['client_id']
+
+print('Created new client:', new_client_id)
+print('Now getting')
+r = client.get(f'http://localhost:8000/clients/{new_client_id}x')
+print(r.status_code)
+print(r.json())
+
+print('Now deleting:')
+r = client.delete(f'http://localhost:8000/clients/{new_client_id}')
+print(r.status_code)
+print(r.json())
+exit()
 #r = client.get('http://localhost:8000/clients')
 r = client.get('http://localhost:8000/clients/yPTk4_qpfjwoKAC_FFvhrBpw_E-lIkMnr9_TacfNyF4')
 #r = client.post('http://localhost:8000/client/', json={'name':'bat'})

@@ -1,3 +1,4 @@
+from enum import Enum, IntEnum
 from typing import List, Optional
 from pydantic import BaseModel, Field, constr, validator
 from spectree import SpecTree, Response
@@ -6,6 +7,7 @@ from starlette.applications import Starlette
 from starlette.authentication import requires
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
+from starlette.exceptions import HTTPException
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
 from ..config import settings
@@ -14,6 +16,24 @@ from ..orm.db import db_session, session_scope
 from dependency_injector.wiring import Closing
 from dependency_injector.wiring import Provide
 from ..containers import Container
+
+
+class APIExceptionResponse(BaseModel):
+
+    status: int
+    msg: str
+
+
+async def api_exception(request, exc):
+    return JSONResponse({
+        "msg": exc.detail,
+        "status": exc.status_code}, status_code=exc.status_code)
+
+
+exception_handlers = {
+    HTTPException: api_exception
+}
+
 
 UI_ROUTES = {
   'redoc': 'api',
@@ -48,7 +68,6 @@ class Message(BaseModel):
     message: str
 
 
-from enum import Enum, IntEnum
 
 
 class StatusEnum(str, Enum):
@@ -106,22 +125,22 @@ async def widget(request):
     return JSONResponse({ 'foo': 'bar' })
 
 
+#from .clients import clients_get, clients_delete, clients_list, clients_post
+#from .tokens import token, token_refresh
 
 
-from .clients import clients_get, clients_delete, client_list, client_post
-from .tokens import token, token_refresh
-
+from . import clients, tokens
 
 routes = [
     Route('/user', user_profile, methods=['POST']),
     # clients
-    Route('/clients/{client_id:str}', clients_get, methods=['GET']),
-    Route('/clients/{client_id:str}', clients_delete, methods=['DELETE']),
-    Route('/clients', client_list, methods=['GET']),
-    Route('/client', client_post, methods=['POST']),
+    Route('/clients/{client_id:str}', clients.clients_get, methods=['GET']),
+    Route('/clients/{client_id:str}', clients.clients_delete, methods=['DELETE']),
+    Route('/clients', clients.clients_list, methods=['GET']),
+    Route('/clients', clients.clients_post, methods=['POST']),
     # tokens
-    Route('/token', token, methods=['POST']),
-    Route('/token-refresh', token_refresh, methods=['POST']),
+    Route('/token', tokens.token_create, methods=['POST']),
+    Route('/token-refresh', tokens.token_refresh, methods=['POST']),
     #
     Route('/widget/', widget)
 ]
@@ -131,6 +150,7 @@ def get_app():
     app = Starlette(
         debug=True,
         routes=routes,
+        exception_handlers=exception_handlers,
         on_startup=[])
     _app.register(app)
     return app

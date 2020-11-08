@@ -1,8 +1,8 @@
 """
 https://docs.authlib.org/en/latest/flask/2/authorization-server.html
 """
-#from __future__ import annotations # for returning self type from classmethod. remove in Py3.10
 import datetime
+from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
 from pydantic import BaseModel, validator, ValidationError # pylint:disable=no-name-in-module
@@ -12,6 +12,7 @@ from sqlalchemy.orm import relationship, Session
 from .. import base
 from ...containers import Container
 from .client import oauth2_clients, create_key, OAuth2Client
+from ..user import User
 from . import (
     ACCESS_TOKEN_BYTES,
     REFRESH_TOKEN_BYTES,
@@ -34,25 +35,123 @@ class Expired(Exception):
 
 ### Schema
 
-class TokenRequest(BaseModel):
-    """Validate a request for a new token."""
+
+class GrantTypes(str, Enum):
+    client_credentials = 'client_credentials'
+    refresh_token = 'refresh_token'
+
+
+class OAuth2TokenCreate(BaseModel):
+
+    class Config:
+        """Configure TokenCreate"""
+        arbitrary_types_allowed = True
+        extra = 'ignore'
+
+    client: OAuth2Client
+    token_type: str
+    access_token: str
+    refresh_token: str
+    scope: str
+    revoked: bool = False
+    access_token_expires_at: datetime.datetime
+    refresh_token_expires_at: datetime.datetime
+
+
+class _TokenRequest(BaseModel):
+    """Base validation and token generation for new-token and refresh-token
+    requests.
+    """
+    grant_type: Optional[GrantTypes]
+    token_type: Optional[str]  = 'Bearer'
+    client_id: Optional[str]
+    client_secret: Optional[str]
+    access_token: Optional[str]
+    refresh_token: Optional[str]
+    scope: Optional[str]
+    access_lifetime: Optional[int]
+    refresh_lifetime: Optional[int]
+    access_token_expires_at: Optional[datetime.datetime]
+    refresh_token_expires_at: Optional[datetime.datetime]
+
+    @validator('access_token_expires_at', always=True)
+    @classmethod
+    def set_access_token_expires_at(cls, v, values):
+        print('SETTING ACCESS EXPIRES')
+        if not v and 'access_lifetime' in values:
+            delta = values['access_lifetime']
+            v = datetime.datetime.utcnow() \
+                + datetime.timedelta(seconds=delta)
+            del values['access_lifetime']
+        return v
+    
+    @validator('refresh_token_expires_at', always=True)
+    @classmethod
+    def set_refresh_token_expires_at(cls, v, values):
+        if not v and 'refresh_lifetime' in values:
+            delta = values['refresh_lifetime']
+            v = datetime.datetime.utcnow() \
+                + datetime.timedelta(seconds=delta)
+            del values['refresh_lifetime']
+        return v
+    
+    @validator('access_token', always=True)
+    @classmethod
+    def generate_access_token(cls, v):
+        if not v:
+            v = create_key(ACCESS_TOKEN_BYTES)
+        return v
+
+    @validator('refresh_token', always=True)
+    @classmethod
+    def generate_refresh_token(cls, v):
+        if not v:
+            v = create_key(REFRESH_TOKEN_BYTES)
+        return v
+
+
+class TokenCreateRequest(_TokenRequest):
+    """Validate a request for a new token request from the API. Generates and
+    sets the token values.
+    """
     # pylint: disable=too-few-public-methods
-    grant_type:str
-    client_id:str
-    client_secret:str
+    grant_type: GrantTypes
+    token_type: str  = 'Bearer'
+    client_id: str
+    client_secret: str
+    access_token: Optional[str]
+    refresh_token: Optional[str]
+    scope: str
+    access_lifetime: int
+    refresh_lifetime: int
+    access_token_expires_at: Optional[datetime.datetime]
+    refresh_token_expires_at: Optional[datetime.datetime]
+
+    @validator('grant_type')
+    @classmethod
+    def check_grant_type(cls, v, values):
+        if v == GrantTypes.client_credentials:
+            return v
+        raise ValidationError('Invalid Grant Type')
 
 
-class TokenRefreshRequest(BaseModel):
+class TokenRefreshRequest(_TokenRequest):
     """Validate token refresh request."""
     # pylint: disable=too-few-public-methods
+    grant_type: GrantTypes
+    refresh_token: str
 
     class Config:
         """Configure TokenRefreshRequest."""
         extra = 'ignore'
 
-    grant_type: str
-    refresh_token: str
-
+    @validator('grant_type')
+    @classmethod
+    def check_grant_type(cls, v):
+        if v == GrantTypes.refresh_token:
+            return v
+        raise ValidationError('Invalid Grant Type')
+    
 
 class TokenResponse(BaseModel):
     """client_credentials granted access token of Bearer type."""
@@ -150,12 +249,7 @@ class OAuth2TokenManager():
             OAuth2Token.refresh_token == refresh_token).one_or_none()
 
     @classmethod
-    def create(cls, *,
-            grant_type:str,
-            client_id:str,
-            client_secret:str,
-            access_lifetime:int,
-            refresh_lifetime:int,
+    def create(cls, obj_in:TokenCreateRequest, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> OAuth2Token:
         """
@@ -208,48 +302,24 @@ class OAuth2TokenManager():
             * error_description (ascii only - a sentence or 2)
             * error_uri - link, e.g. to api docs
         """
-        if grant_type != 'client_credentials':
-            raise OAuth2Token.InvalidGrantType
-        client = oauth2_clients.get_by_client_id(client_id, db=db)
+        client = oauth2_clients.get_by_client_id(obj_in.client_id, db=db)
         if not client:
             raise OAuth2Client.DoesNotExist
-        if not client.compare_secret(client_secret):
+        if not client.compare_secret(obj_in.client_secret):
             raise OAuth2Client.InvalidOAuth2Client
-        access_expires = datetime.datetime.utcnow() \
-            + datetime.timedelta(seconds=access_lifetime)
-        refresh_expires = datetime.datetime.utcnow() \
-            + datetime.timedelta(seconds=refresh_lifetime)
-        token = OAuth2Token(
-            client=client,
-            token_type='Bearer',
-            access_token=create_key(ACCESS_TOKEN_BYTES),
-            refresh_token=create_key(REFRESH_TOKEN_BYTES),
-            access_token_expires_at=access_expires,
-            refresh_token_expires_at=refresh_expires
-
-        )
+        data = OAuth2TokenCreate(**obj_in.dict(), client=client)
+        token = OAuth2Token(**data.dict())
         db.add(token)
         return token
 
     @classmethod
-    def refresh(cls, *,
-            grant_type:str,
-            refresh_token:str,
-            access_lifetime:int,
-            refresh_lifetime:int,
+    def refresh(cls, obj_in:TokenRefreshRequest, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> OAuth2Token:
         """
         https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
 
         Refresh the token.
-
-        TODO: implement refresh
-
-        e.g. refresh for:
-        FORM DATA FormData([
-            ('grant_type', 'refresh_token'),
-            ('refresh_token', '__k85z_6A-QLV5tZLO2s ... ')])
 
         grant_type: must be "refresh_token"
         refresh_token: must match the stored refresh token
@@ -268,9 +338,7 @@ class OAuth2TokenManager():
         ? is requests including client_id & secret in refresh requests?
         NO DOES NOT SEEM TO
         """
-        if grant_type != 'refresh_token':
-            raise OAuth2Token.InvalidGrantType
-        token = cls.get_by_refresh_token(refresh_token, db=db)
+        token = cls.get_by_refresh_token(obj_in.refresh_token, db=db)
         # TODO: ensure scope request is not expanded
         # TODO: do we need to check client auth? requests does not include
         #       client_id or secret in a refresh request
@@ -280,13 +348,10 @@ class OAuth2TokenManager():
             raise OAuth2Token.Revoked
         if datetime.datetime.now() > token.refresh_token_expires_at:
             raise OAuth2Token.Expired
-        token.access_token = create_key(ACCESS_TOKEN_BYTES)
-        token.refresh_token = create_key(REFRESH_TOKEN_BYTES)
-        now = datetime.datetime.utcnow()
-        token.access_token_expires_at = now \
-            + datetime.timedelta(seconds=access_lifetime)
-        token.refresh_token_expires_at = now \
-            + datetime.timedelta(seconds=refresh_lifetime)
+        token.access_token = obj_in.access_token
+        token.refresh_token = obj_in.refresh_token
+        token.access_token_expires_at = obj_in.access_token_expires_at
+        token.refresh_token_expires_at = obj_in.refresh_token_expires_at
         db.add(token)
         return token
 

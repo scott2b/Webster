@@ -16,15 +16,15 @@ from pydantic import BaseModel, EmailStr
 ### Schema
 
 class UserBase(BaseModel):
-    id: int
-    full_name: str
-    email: str
-    hashed_password: str
-    is_active: bool
-    is_superuser: bool
+    id: Optional[int]
+    full_name: Optional[str]
+    email: Optional[str]
+    hashed_password: Optional[str]
+    is_active: bool = True
+    is_superuser: bool = False
 
 
-class UserResponse(BaseModel):
+class UserResponse(UserBase):
     id: int
     full_name: str
     email: str

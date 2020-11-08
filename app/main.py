@@ -21,7 +21,7 @@ container = Container()
 container.init_resources()
 #container.config.from_ini('config.ini')
 import sys
-container.wire(modules=[db, user, client, token])
+container.wire(modules=[db, base, user, client, token])
 # TODO: why can't we do this? The api module in particular seems problematic:
 # container.wire(modules=[db, ui, api])
 from . import ui, api
