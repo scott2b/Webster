@@ -2,84 +2,44 @@
 <html>
 <head>
 	<title>Home</title>
+    <link href="/static/site.css" rel="stylesheet">
 </head>
 <body>
 
-<style>
-.wrapper {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 10px;
-  grid-auto-rows: minmax(100px, auto);
-}
-
-.wrapper div {
-  border: 1px solid #666;
-  padding: 1em;
-  border-radius: 1em;
-}
-
-.zero {
-  grid-column: 1 / 5;
-  grid-row: 1;
-}
-.one {
-  grid-column: 1 / 2;
-  grid-row: 2;
-}
-.two { 
-  grid-column: 2 / 4;
-  grid-row: 2 / 4;
-}
-.three {
-  grid-column: 1;
-  grid-row: 3 / 6;
-}
-.four {
-  grid-column: 2;
-  grid-row: 4;
-}
-.five {
-  grid-column: 3;
-  grid-row: 4;
-}
-.six {
-  grid-column: 2;
-  grid-row: 5;
-}
-.seven {
-  grid-column: 3;
-  grid-row: 5;
-}
-
-
-input {
-  font-size: 1em;
-  padding: 0.25em 0.5em;
-  margin: 0.25em 0.25em;
-  background-color: #fff;
-  border: 2px solid #999;
-  border-radius: 4px;
-}
-</style>
-
-<div class="wrapper">
-  <div class="zero">
+<section id="banner">
+  {% if request.session.messages %}
+  <div class="messages">
     {% include "_messages.html" %}
   </div>
-  <div class="one">
+  {% endif %}
+</section>
+
+<section id="page">
+
+  <div class="header">
     <h1>Starlight</h1>
     {% if request.user.is_authenticated %}
-    <p>hello {{request.session.get('username')}}</p>
+    <p>Hello, {{ request.user.full_name }}</p>
     {% else %}
     <p>Please sign in</p>
     {% endif %}
+    <div>
+      <a href="/docs/api" target="_blank">API Docs</a>
+    </div>
   </div>
-  <div class="two">
+
+  <div class="api">
     {% if request.user.is_authenticated %}
-    <h3>Application clients</h3>
+    <h3>API</h3>
+    <h4>Create a new API client</h4>
+    {% with form=client_form %}
+        {% with action='/client-form?next=/' %}
+            {% include "_client.html" %}
+        {% endwith %}
+    {% endwith %}
+    <h4>API client applications</h4>
     {% for client in api_clients %}
-        <div style="border:1px solid blue;">
+        <div style="border:1px solid blue; margin-top:1em;">
         <p><strong>NAME:</strong> {{ client.name }}</p>
         <p><strong>ID:</strong> {{ client.client_id }}</p>
         <p><strong>SECRET:</strong> {{ client.client_secret }}</p>
@@ -90,20 +50,16 @@ input {
         </form>
         </div>
     {% endfor %}
-
     {% endif %}
-    <h3>Create a new API client:</h3>
-    {% with form=client_form %}
-        {% with action='/client-form?next=/' %}
-            {% include "_client.html" %}
-        {% endwith %}
-    {% endwith %}
   </div>
-  <div class="three">
+
+  <div class="profile">
     {% if request.user.is_authenticated %}
         <div>
-            <strong>{{ request.user.email }}</strong>
-            <a href="/logout">Logout</a>
+            <h3>User profile</h3>
+            <p><strong>{{ request.user.full_name }}</strong></p>
+            <p><strong>{{ request.user.email }}</strong></p>
+            <p><a href="/logout">Logout</a></p>
         </div>
     {% else %}
     <h2>Login</h2>
@@ -114,24 +70,8 @@ input {
       </div>
     {% endif %}
   </div>
-  <div class="four">
-    Four
-  </div>
-  <div class="five">
-    Five
-  </div>
-  <div class="six">
-    Six
-  </div>
-  <div class="seven">
-    Seven
-  </div>
-</div>
 
-<div class="container">
-
-
-</div>
+</section>
 
 </body>
 </html>

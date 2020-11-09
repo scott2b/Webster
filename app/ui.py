@@ -139,6 +139,7 @@ async def login(request):
         user = form.validate()
         if user:
             add_message(request, f'You are now logged in as: {user.full_name}')
+            add_message(request, f'You are now logged in as: {user.full_name}')
             next = request.query_params.get('next', '/')
             return RedirectResponse(url=next, status_code=302)
     return templates.TemplateResponse('login.html', {

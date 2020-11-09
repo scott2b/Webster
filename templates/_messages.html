@@ -1,9 +1,9 @@
     {% if request.session.messages %}
-      <ul>
       {% for message in request.session.messages %}
-      <li>{{ message }}</li>
+      <div class="message">
+      {{ message }}
+      </div>
       {% endfor %}
-      </ul>
     {{ request.clear_messages() }}
     {% endif %}
 
