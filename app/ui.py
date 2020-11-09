@@ -112,8 +112,8 @@ async def client_form(request):
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
     if request.method == 'POST' and form.validate():
-        _client = OAuth2Client.objects.create_for_user(
-            request.user, form.name.data)
+        _client = OAuth2Client.objects.create(
+            OAuth2ClientCreate(user=request.user, **data))
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
     clear_messages = partial(_clear_messages, request)
@@ -132,7 +132,6 @@ async def homepage(request):
     form = LoginForm(data, request, meta={ 'csrf_context': request.session })
     client_form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
     if request.user.is_authenticated:
-        print('user id', request.user.id)
         api_clients = OAuth2Client.objects.fetch_for_user(request.user)
     else:
         api_clients = []
