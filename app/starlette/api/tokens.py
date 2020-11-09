@@ -1,9 +1,9 @@
 from spectree import Response
 from starlette.responses import JSONResponse
-from ..config import settings
-from ..orm.oauth2.client import OAuth2Client
-from ..orm.oauth2.token import OAuth2Token
-from ..schemas.token import TokenResponse, TokenCreateRequest, TokenRefreshRequest
+from ...config import settings
+from ...orm.oauth2.client import OAuth2Client
+from ...orm.oauth2.token import OAuth2Token
+from ...schemas.token import TokenResponse, TokenCreateRequest, TokenRefreshRequest
 from . import _app, ValidationErrorList, APIExceptionResponse
 
 

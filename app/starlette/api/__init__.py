@@ -10,12 +10,12 @@ from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
-from ..config import settings
-from ..orm.oauth2.token import oauth2_tokens
-from ..orm.db import db_session, session_scope
+from ...config import settings
+from ...orm.oauth2.token import oauth2_tokens
+from ...orm.db import db_session, session_scope
 from dependency_injector.wiring import Closing
 from dependency_injector.wiring import Provide
-from ..containers import Container
+from ...containers import Container
 
 
 class APIMessage(BaseModel):

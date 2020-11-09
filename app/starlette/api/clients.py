@@ -2,13 +2,13 @@ from spectree import Response
 from starlette.authentication import requires
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
-from ..orm.oauth2.client import OAuth2Client
-from ..schemas.clients import (
+from ...orm.oauth2.client import OAuth2Client
+from ...schemas.clients import (
     OAuth2ClientCreate,
     OAuth2ClientResponse,
     OAuth2ClientRequest,
     OAuth2ClientListResponse)
-from ..orm.db import db_session
+from ...orm.db import db_session
 from . import _app, APIMessage, APIExceptionResponse
 from . import ValidationErrorList
 

@@ -13,10 +13,10 @@ successful patching of that module. For the time being, settling with using
 a decorator for db session management and only injecting into the decorator
 (actually via a helper method).
 """
-from .containers import Container
-from .orm import db #, oauth2
-from .orm import user, base
-from .orm.oauth2 import client, token
+from ..containers import Container
+from ..orm import db #, oauth2
+from ..orm import user, base
+from ..orm.oauth2 import client, token
 container = Container()
 container.init_resources()
 #container.config.from_ini('config.ini')
@@ -36,8 +36,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.routing import Route, Mount, WebSocketRoute, Router
 from starlette.staticfiles import StaticFiles
-from .config import settings
-from .auth import backend
+from ..config import settings
+from . import backends
 
 
 class CustomMiddleware(BaseHTTPMiddleware):
@@ -108,7 +108,7 @@ if settings.BACKEND_CORS_ORIGINS:
 
 app.add_middleware(
     AuthenticationMiddleware,
-    backend=backend.SessionAuthBackend())
+    backend=backends.SessionAuthBackend())
 
 
 app.add_middleware(

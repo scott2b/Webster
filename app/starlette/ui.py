@@ -1,5 +1,5 @@
-from .orm import oauth2, user
-from .orm.db import db_session, session_scope
+from ..orm import oauth2, user
+from ..orm.db import db_session, session_scope
 from starlette.authentication import requires
 from starlette.exceptions import HTTPException
 from starlette.responses import PlainTextResponse, HTMLResponse, RedirectResponse
@@ -8,9 +8,9 @@ from sqlalchemy import exc
 
 from dependency_injector.wiring import Closing
 from dependency_injector.wiring import Provide
-from . import containers
-from .config import settings
-from .orm.oauth2.client import OAuth2Client
+from .. import containers
+from ..config import settings
+from ..orm.oauth2.client import OAuth2Client
 
 
 from starlette.requests import Request
@@ -71,7 +71,7 @@ templates = Templates(directory='templates')
 
 from jinja2.ext import Extension
 from functools import partial
-from .orm.user import User
+from ..orm.user import User
 
 
 
@@ -116,7 +116,7 @@ class LoginForm(CSRFForm):
         return _user
 
 
-from .orm.oauth2.client import OAuth2ClientCreate
+from ..orm.oauth2.client import OAuth2ClientCreate
 
 class APIClientForm(CSRFForm):
     name = StringField('Name')

@@ -1,9 +1,10 @@
 # Starlight
+
+
 Starter web application based on Starlette
 
-
 ```
- $ uvicorn app.main:app --reload
+ $ uvicorn app.starlette.main:app --reload
 ```
 
 
