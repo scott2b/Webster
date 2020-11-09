@@ -118,7 +118,3 @@ app.add_middleware(
     max_age=settings.SESSION_EXPIRE_SECONDS,
     same_site=settings.SESSION_SAME_SITE,
     https_only=False)
-
-
-    
-    

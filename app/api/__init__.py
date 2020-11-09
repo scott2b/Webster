@@ -88,14 +88,14 @@ class ValidationErrorList(BaseModel):
     __root__: List[ValidationErrorMessage]
     
 
-class Profile(BaseModel):
-    name: constr(min_length=2, max_length=40)  # Constrained Str
-    age: int = Field(
-        ...,
-        gt=0,
-        lt=150,
-        description='user age(Human)'
-    )
+#class Profile(BaseModel):
+#    name: constr(min_length=2, max_length=40)  # Constrained Str
+#    age: int = Field(
+#        ...,
+#        gt=0,
+#        lt=150,
+#        description='user age(Human)'
+#    )
 
 
 class Cookie(BaseModel):
@@ -110,23 +110,23 @@ class Cookie(BaseModel):
         pass # TODO: implement authentication for Swagger support
 
 
-@_app.validate(json=Profile, resp=Response(HTTP_200=APIMessage, HTTP_403=None), tags=['api'])
-@requires('app_auth', status_code=403)
-async def user_profile(request):
-    """
-    verify user profile (summary of this endpoint)
-
-    user's name, user's age, ... (long description)
-    """
-    print(request.context.json)  # or await request.json()
-    return JSONResponse({'msg': 'it works', 'status': 200})
+#@_app.validate(json=Profile, resp=Response(HTTP_200=APIMessage, HTTP_403=None), tags=['api'])
+#@requires('app_auth', status_code=403)
+#async def user_profile(request):
+#    """
+#    verify user profile (summary of this endpoint)
+#
+#    user's name, user's age, ... (long description)
+#    """
+#    print(request.context.json)  # or await request.json()
+#    return JSONResponse({'msg': 'it works', 'status': 200})
 
 
 from . import clients, tokens
 from .users import profile, password
 
 routes = [
-    Route('/user', user_profile, methods=['POST']),
+    #Route('/user', user_profile, methods=['POST']),
     Route('/profile', profile, methods=['GET', 'PUT']),
     Route('/password', password, methods=['PUT']),
     # clients
