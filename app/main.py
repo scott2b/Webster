@@ -51,6 +51,28 @@ class CustomMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class MessagingMiddleware(BaseHTTPMiddleware):
+
+    async def dispatch(self, request, call_next):
+        print('BEFORE')
+        #print(request.session)
+        print(dir(request))
+        print(request.scope)
+        response = await call_next(request)
+        if hasattr(request, 'session'):
+            if 'messages' in request.session:
+                messages = request.session['messages']
+                print('messages', messages)
+                #request.session['messages'].append('xxx')
+                #request.session['messages'] = []
+        print('AFTER')
+        print(request.session)
+        print('*** MESSAGING MIDDLEWWARE')
+        print(response)
+        print(dir(response))
+        return response
+
+
 def startup():
     print(f'{settings.PROJECT_NAME} startup.')
 
@@ -68,6 +90,10 @@ app = Starlette(
     debug=True,
     routes=app_routes,
     on_startup=[startup])
+
+
+app.add_middleware(
+    MessagingMiddleware)
 
 
 if settings.BACKEND_CORS_ORIGINS:
@@ -93,3 +119,6 @@ app.add_middleware(
     same_site=settings.SESSION_SAME_SITE,
     https_only=False)
 
+
+    
+    

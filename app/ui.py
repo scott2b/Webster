@@ -2,7 +2,6 @@ from .orm import oauth2, user
 from .orm.db import db_session, session_scope
 from starlette.authentication import requires
 from starlette.exceptions import HTTPException
-from starlette.templating import Jinja2Templates
 from starlette.responses import PlainTextResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import exc
@@ -13,16 +12,67 @@ from . import containers
 from .config import settings
 from .orm.oauth2.client import OAuth2Client
 
-templates = Jinja2Templates(directory='templates')
+
+from starlette.requests import Request
+from starlette.templating import Jinja2Templates
+import inspect
+import types
+
+
+def _clear_messages(request):
+    """Call from a template after rendering messages to clear out the current
+    message list. Requires session middleware.
+    """
+    request.session['messages']= []
+    return ''
+
+
+def add_message(request, message):
+    """Add a message to the session messages list."""
+    if not 'messages' in request.session:
+        request.session['messages'] = []
+    request.session['messages'].append(message)
+
+
+class Templates(Jinja2Templates):
+
+    def TemplateResponse(
+        self,
+        name: str,
+        context: dict,
+        **kwargs
+    ):
+        """Render a template response.
+
+        If it exists and is not already set in the context, injects the
+        request object from the calling scope into the template context.
+
+        Adds a clear_request method to the request instance.
+        """ 
+        if 'request' in context:
+            req = context['request']
+            if isinstance(req, Request):
+                req.clear_messages = types.MethodType(_clear_messages, req)
+        else:
+            frame = inspect.currentframe()
+            try:
+                _locals = frame.f_back.f_locals
+                req = _locals.get('request')
+                if req is not None and isinstance(req, Request):
+                    context['request'] = req
+                    req.clear_messages = types.MethodType(_clear_messages, req)
+            finally:
+                del frame
+        return super().TemplateResponse(name, context, **kwargs)
+    
+
+templates = Templates(directory='templates')
+
 
 from jinja2.ext import Extension
 from functools import partial
 from .orm.user import User
 
-
-def _clear_messages(request):
-    request.session['messages']= []
-    return ''
 
 
 from wtforms import Form, BooleanField, StringField, validators, PasswordField
@@ -63,10 +113,8 @@ class LoginForm(CSRFForm):
         else:
             self.request.session['username'] = self.email.data
             self.request.session['user_id'] = _user.id
-        if _user:
-            return True
-        else:
-            return False
+        return _user
+
 
 from .orm.oauth2.client import OAuth2ClientCreate
 
@@ -87,19 +135,20 @@ class APIClientForm(CSRFForm):
 async def login(request):
     data = await request.form()
     form = LoginForm(data, request, meta={ 'csrf_context': request.session })
-    if request.method == 'POST' and form.validate():
-        next = request.query_params.get('next', '/')
-        return RedirectResponse(url=next, status_code=302)
-    clear_messages = partial(_clear_messages, request)
+    if request.method == 'POST':
+        user = form.validate()
+        if user:
+            add_message(request, f'You are now logged in as: {user.full_name}')
+            next = request.query_params.get('next', '/')
+            return RedirectResponse(url=next, status_code=302)
     return templates.TemplateResponse('login.html', {
-        'request': request,
         'form': form,
-        'clear_messages': clear_messages
     })
 
 
 def logout(request):
     del request.session['user_id']
+    add_message(request, 'You are now logged out.')
     return RedirectResponse(url='/')
 
 
@@ -116,11 +165,8 @@ async def client_form(request):
             OAuth2ClientCreate(user=request.user, **data))
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
-    clear_messages = partial(_clear_messages, request)
     return templates.TemplateResponse('_client.html', {
-        'request': request,
         'form': form,
-        'clear_messages': clear_messages
     })
 
 from starlette.responses import JSONResponse
@@ -135,11 +181,8 @@ async def homepage(request):
         api_clients = OAuth2Client.objects.fetch_for_user(request.user)
     else:
         api_clients = []
-    clear_messages = partial(_clear_messages, request)
     return templates.TemplateResponse('home.html', {
-        'request': request,
         'form': form,
         'client_form': client_form,
         'api_clients': api_clients,
-        'clear_messages': clear_messages,
     })
