@@ -133,17 +133,19 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             obj_in: Union[UpdateSchemaType, Dict[str, Any]],
             db:Session = Closing[Provide[Container.closed_db]]) -> ModelType:
         """Update the data in the database."""
-        raise Exception('Not implemented')
-        obj_data = jsonable_encoder(db_obj)
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        elif isinstance(obj_in, self.model):
-            update_data = obj_in.dict(exclude_unset=True)
-        else:
-            raise Exception('Invalid model data type.')
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
+        #obj_data = jsonable_encoder(db_obj)
+        #obj_data = db_obj.data()
+        #if isinstance(obj_in, dict):
+        #    update_data = obj_in
+        #elif isinstance(obj_in, self.model):
+        #    update_data = obj_in.dict(exclude_unset=True)
+        #else:
+        #    raise Exception('Invalid model data type.')
+        #for field in obj_data:
+        #    if field in update_data:
+        #        setattr(db_obj, field, update_data[field])
+        for k, v in obj_in.dict().items():
+            setattr(db_obj, k, v)
         db.add(db_obj)
         db.commit()
         return db_obj

@@ -18,11 +18,14 @@ from dependency_injector.wiring import Provide
 from ..containers import Container
 
 
-class APIExceptionResponse(BaseModel):
+class APIMessage(BaseModel):
 
     status: int
     msg: str
 
+
+class APIExceptionResponse(APIMessage):
+    ...
 
 async def api_exception(request, exc):
     return JSONResponse({
@@ -64,15 +67,11 @@ class CustomPlugin(StarlettePlugin):
 _app = SpecTree('starlette', path='docs', backend=CustomPlugin, MODE='strict')
 
 
-class Message(BaseModel):
-    message: str
 
 
-
-
-class StatusEnum(str, Enum):
-    ok = 'OK'
-    err = 'ERR'
+#class StatusEnum(str, Enum):
+#    ok = 'OK'
+#    err = 'ERR'
 
 
 class ValidationError(BaseModel):
@@ -83,7 +82,6 @@ class ValidationError(BaseModel):
 
 class ValidationErrorList(BaseModel):
     __root__: List[ValidationError]
-
     
 
 class Profile(BaseModel):
@@ -108,7 +106,7 @@ class Cookie(BaseModel):
         pass # TODO: implement authentication for Swagger support
 
 
-@_app.validate(json=Profile, resp=Response(HTTP_200=Message, HTTP_403=None), tags=['api'])
+@_app.validate(json=Profile, resp=Response(HTTP_200=APIMessage, HTTP_403=None), tags=['api'])
 @requires('app_auth', status_code=403)
 async def user_profile(request):
     """
@@ -117,22 +115,16 @@ async def user_profile(request):
     user's name, user's age, ... (long description)
     """
     print(request.context.json)  # or await request.json()
-    return JSONResponse({'text': 'it works'})
-
-
-@requires(['api_auth'], status_code=403)
-async def widget(request):
-    return JSONResponse({ 'foo': 'bar' })
-
-
-#from .clients import clients_get, clients_delete, clients_list, clients_post
-#from .tokens import token, token_refresh
+    return JSONResponse({'msg': 'it works', 'status': 200})
 
 
 from . import clients, tokens
+from .users import profile, password
 
 routes = [
     Route('/user', user_profile, methods=['POST']),
+    Route('/profile', profile, methods=['GET', 'PUT']),
+    Route('/password', password, methods=['PUT']),
     # clients
     Route('/clients/{client_id:str}', clients.clients_get, methods=['GET']),
     Route('/clients/{client_id:str}', clients.clients_delete, methods=['DELETE']),
@@ -141,8 +133,6 @@ routes = [
     # tokens
     Route('/token', tokens.token_create, methods=['POST']),
     Route('/token-refresh', tokens.token_refresh, methods=['POST']),
-    #
-    Route('/widget/', widget)
 ]
 
 

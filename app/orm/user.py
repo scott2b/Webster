@@ -6,7 +6,7 @@ from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import Session
 from . import base
 from ..auth import get_password_hash, verify_password
-from ..schemas.user import UserCreate, UserUpdate
+from ..schemas.user import UserCreate, UserUpdateRequest
 from ..containers import Container
 
 import pydantic
@@ -32,6 +32,11 @@ class UserResponse(UserBase):
     is_superuser: bool
 
 
+class UserProfileResponse(BaseModel):
+    full_name: str
+    email: str
+
+
 ### ORM
 
 @dataclass
@@ -55,7 +60,7 @@ class User(base.ModelBase, base.DataModel):
         return True
 
 
-class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
+class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
     """User object manager."""
 
     @classmethod
@@ -78,21 +83,20 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdate]):
         db.add(db_obj)
         return db_obj
 
-    @classmethod
-    def update(cls, *,
-            db_obj: User,
-            obj_in: Union[UserUpdate, Dict[str, Any]],
-            db:Session = Closing[Provide[Container.closed_db]]) -> User:
-        """Update user object data in the database."""
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        else:
-            update_data = obj_in.dict(exclude_unset=True)
-        if update_data["password"]:
-            hashed_password = get_password_hash(update_data["password"])
-            del update_data["password"]
-            update_data["hashed_password"] = hashed_password
-        return super().update(db_obj=db_obj, obj_in=update_data, db=db)
+    #def update(self, *,
+    #        db_obj: User,
+    #        obj_in: Union[UserUpdate, Dict[str, Any]],
+    #        db:Session = Closing[Provide[Container.closed_db]]) -> User:
+    #    """Update user object data in the database."""
+    #    #if isinstance(obj_in, dict):
+    #    #    update_data = obj_in
+    #    #else:
+    #    #    update_data = obj_in.dict(exclude_unset=True)
+    #    #if update_data.get("password"):
+    #    #    hashed_password = get_password_hash(update_data["password"])
+    #    #    del update_data["password"]
+    #    #    update_data["hashed_password"] = hashed_password
+    #    return super().update(db_obj=db_obj, obj_in=update_data, db=db)
 
     @classmethod
     def authenticate(cls, email: str, password: str, *,

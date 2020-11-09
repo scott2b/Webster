@@ -29,6 +29,8 @@ client = BackendApplicationClient(client_id=client_id)
 oauth = OAuth2Session(client=client)
 
 
+
+
 try:
     token = oauth.fetch_token(token_url=token_url, client_id=client_id,
         client_secret=client_secret, include_client_id=True)
@@ -38,13 +40,44 @@ except MissingTokenError:
     exit()
 print(token)
 
-time.sleep(30)
+# time.sleep(30)
 
 refresh_url = 'http://localhost:8000/token-refresh'
 extra = {}
 
 client = OAuth2Session(client_id, token=token, auto_refresh_url=refresh_url,
     auto_refresh_kwargs=extra, token_updater=token_saver)
+
+
+print('GETTING USER PROFILE')
+r = client.get('http://localhost:8000/profile')
+print(r.status_code)
+print(r.json())
+
+print('UPDATING USER PROFILE')
+data = r.json()
+data['full_name'] += 'x'
+data['password'] = 'foo'
+data['hashed_password'] = 'foo'
+data['is_superuser'] = True
+r = client.put('http://localhost:8000/profile', json=data)
+print(r.status_code)
+print(r.json())
+
+print('CHANGING USER PASSWORD')
+data = { 'password': 'scott' }
+r = client.put('http://localhost:8000/password', json=data)
+print(r.status_code)
+print(r.json())
+
+
+print('ATTEMPT TO SET HASH DIRECTLY')
+data = { 'hashed_password': 'foo' }
+r = client.put('http://localhost:8000/password', json=data)
+print(r.status_code)
+print(r.json())
+
+exit()
 
 
 # Get the list of clients

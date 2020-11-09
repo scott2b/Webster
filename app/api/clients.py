@@ -9,7 +9,7 @@ from ..orm.oauth2.client import (
     OAuth2ClientRequest,
     OAuth2ClientListResponse)
 from ..orm.db import db_session
-from . import _app, Message, APIExceptionResponse
+from . import _app, APIMessage, APIExceptionResponse
 from . import ValidationErrorList
 
 
@@ -44,7 +44,7 @@ async def clients_get(request, db):
 
 
 @requires('api_auth', status_code=403)
-@_app.validate(resp=Response(HTTP_200=Message,
+@_app.validate(resp=Response(HTTP_200=APIMessage,
                              HTTP_403=APIExceptionResponse,
                              HTTP_404=APIExceptionResponse,
                              HTTP_422=ValidationErrorList), tags=['clients'])
@@ -55,7 +55,8 @@ async def clients_delete(request, db):
     user=request.scope['token'].get_user(db=db)
     r = OAuth2Client.objects.delete_for_user(user, client_id, db=db)
     if r:
-        return JSONResponse({ 'message': 'Deleted' }, status_code=200)
+        return JSONResponse(APIMessage(msg='Deleted', status=200).dict(),
+            status_code=200)
     raise HTTPException(404, detail="Not found")
 
 
