@@ -56,6 +56,20 @@ class UserPasswordUpdateRequest(BaseModel):
         raise ValueError('Invalid password')
 
 
+class UserProfileResponse(BaseModel):
+    full_name: str
+    email: str
+
+
+class AdministrativeUserProfileResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    is_active: bool
+    is_superuser: bool
+
+
+
 #class UserInDBBase(UserBase):
 #    id: Optional[int] = None
 #

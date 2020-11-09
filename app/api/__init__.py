@@ -1,6 +1,6 @@
 from enum import Enum, IntEnum
 from typing import List, Optional
-from pydantic import BaseModel, Field, constr, validator
+from pydantic import BaseModel, Field, constr, validator, ValidationError
 from spectree import SpecTree, Response
 from spectree.plugins.starlette_plugin import StarlettePlugin, PAGES
 from starlette.applications import Starlette
@@ -32,9 +32,13 @@ async def api_exception(request, exc):
         "msg": exc.detail,
         "status": exc.status_code}, status_code=exc.status_code)
 
+async def validation_error(request, exc):
+    return JSONResponse(exc.errors(), status_code=422)
+
 
 exception_handlers = {
-    HTTPException: api_exception
+    HTTPException: api_exception,
+    ValidationError: validation_error
 }
 
 
@@ -74,14 +78,14 @@ _app = SpecTree('starlette', path='docs', backend=CustomPlugin, MODE='strict')
 #    err = 'ERR'
 
 
-class ValidationError(BaseModel):
+class ValidationErrorMessage(BaseModel):
     loc: List[str]
     msg: str
     type: str
 
 
 class ValidationErrorList(BaseModel):
-    __root__: List[ValidationError]
+    __root__: List[ValidationErrorMessage]
     
 
 class Profile(BaseModel):

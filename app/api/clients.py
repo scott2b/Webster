@@ -2,8 +2,8 @@ from spectree import Response
 from starlette.authentication import requires
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
-from ..orm.oauth2.client import (
-    OAuth2Client,
+from ..orm.oauth2.client import OAuth2Client
+from ..schemas.clients import (
     OAuth2ClientCreate,
     OAuth2ClientResponse,
     OAuth2ClientRequest,
@@ -15,8 +15,7 @@ from . import ValidationErrorList
 
 @requires('api_auth', status_code=403)
 @_app.validate(resp=Response(HTTP_200=OAuth2ClientListResponse,
-                             HTTP_403=APIExceptionResponse,
-                             HTTP_422=ValidationErrorList), tags=['clients'])
+                             HTTP_403=APIExceptionResponse), tags=['clients'])
 @db_session
 async def clients_list(request, db):
     """Get available clients."""
@@ -30,8 +29,7 @@ async def clients_list(request, db):
 @requires('api_auth', status_code=403)
 @_app.validate(resp=Response(HTTP_200=OAuth2ClientResponse,
                              HTTP_403=APIExceptionResponse,
-                             HTTP_404=APIExceptionResponse,
-                             HTTP_422=ValidationErrorList), tags=['clients'])
+                             HTTP_404=APIExceptionResponse), tags=['clients'])
 @db_session
 async def clients_get(request, db):
     """Get a specified client."""
@@ -46,8 +44,7 @@ async def clients_get(request, db):
 @requires('api_auth', status_code=403)
 @_app.validate(resp=Response(HTTP_200=APIMessage,
                              HTTP_403=APIExceptionResponse,
-                             HTTP_404=APIExceptionResponse,
-                             HTTP_422=ValidationErrorList), tags=['clients'])
+                             HTTP_404=APIExceptionResponse), tags=['clients'])
 @db_session
 async def clients_delete(request, db):
     """Delete a client."""
@@ -72,7 +69,7 @@ async def clients_post(request):
     try:
         user = request.scope['token'].get_user()
         _client = OAuth2Client.objects.create(
-            OAuth2ClientCreate(name=data['name'], user=user))
+            OAuth2ClientCreate(user=user, **data))
     except OAuth2Client.Exists:
         return JSONResponse([ { 'loc': ['name'],
             'msg': 'Client name already exists for account.',

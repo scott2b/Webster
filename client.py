@@ -77,7 +77,6 @@ r = client.put('http://localhost:8000/password', json=data)
 print(r.status_code)
 print(r.json())
 
-exit()
 
 
 # Get the list of clients
@@ -101,7 +100,7 @@ print('Now deleting:')
 r = client.delete(f'http://localhost:8000/clients/{new_client_id}')
 print(r.status_code)
 print(r.json())
-exit()
+
 #r = client.get('http://localhost:8000/clients')
 r = client.get('http://localhost:8000/clients/yPTk4_qpfjwoKAC_FFvhrBpw_E-lIkMnr9_TacfNyF4')
 #r = client.post('http://localhost:8000/client/', json={'name':'bat'})
@@ -115,7 +114,7 @@ print(r.json())
 #print('waiting for expire')
 #time.sleep(35)
 
-protected_url = 'http://localhost:8000/widget'
+protected_url = 'http://localhost:8000/profile'
 
 
 start_time = time.time()

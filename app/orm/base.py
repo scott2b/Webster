@@ -38,9 +38,9 @@ class ModelExceptions():
     Exists = Exists
 
 
-class BaseBase(pydantic.BaseModel):
+class DefaultSchema(pydantic.BaseModel):
     """
-    Default Base schema for a DataModel which just allows all fields given.
+    Default schema for a DataModel which just allows all fields given.
     """
     class Config:
         extra = 'allow'
@@ -48,11 +48,11 @@ class BaseBase(pydantic.BaseModel):
 
 class DataModel(ModelExceptions):
     """Subclasses should be @dataclass annotated."""
-    base_schema = BaseBase
+    default_schema = DefaultSchema 
     
     def data_model(self, model=None):
         if model is None:
-            model = self.base_schema
+            model = self.default_schema
         data = dataclasses.asdict(self)
         data = model(**data)
         return data

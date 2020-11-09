@@ -3,7 +3,7 @@ from starlette.authentication import AuthenticationBackend, AuthCredentials, Sim
 from .. import orm
 from ..orm.oauth2.token import OAuth2Token
 from ..orm.db import session_scope
-from ..orm.user import User, UserBase, UserResponse
+from ..orm.user import User
 from .. import containers
 
 from dataclasses import dataclass
@@ -12,34 +12,20 @@ import dataclasses
 class SessionAuthBackend(AuthenticationBackend):
 
     async def authenticate(self, request):
-        print(containers.connection_count)
-        print(dir(request))
-        print(request.base_url)
-        print(request.url)
-        print(request.headers)
-        print(request.client)
-        print(request.keys())
-        print(request.scope)
         if 'user_id' in request.session:
             user_id = request.session['user_id']
             with session_scope() as db:
                 user = User.objects.get(user_id, db=db)
-                print(user.dict(model=UserResponse))
-            #return AuthCredentials(['app_auth', 'api_auth']), user
             return AuthCredentials(['app_auth']), user
         if request.headers.get('authorization'):
             bearer = request.headers['authorization'].split()
             if bearer[0] != 'Bearer':
                 return
             bearer = bearer[1]
-            print('BEARER', bearer)
             token = OAuth2Token.objects.get_by_access_token(bearer)
-            print('TOKEN by access', token)
             if token.revoked:
-                print('REVOKED!')
                 raise Exception
             if datetime.datetime.utcnow() > token.access_token_expires_at:
-                print('EXPIRED')
                 raise Exception
             request.scope['token'] = token
             return AuthCredentials(['api_auth']), None

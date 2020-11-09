@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timedelta
 from typing import Any, Union, Optional
 from jose import jwt # type: ignore
@@ -9,6 +10,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 ALGORITHM = "HS256"
+
+
+
+def create_random_key(nbytes):
+    """Create a URL safe secret token."""
+    return secrets.token_urlsafe(nbytes)
 
 
 def create_access_token(

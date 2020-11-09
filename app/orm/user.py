@@ -6,7 +6,7 @@ from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import Session
 from . import base
 from ..auth import get_password_hash, verify_password
-from ..schemas.user import UserCreate, UserUpdateRequest
+from ..schemas.user import UserCreate, UserUpdateRequest, UserProfileResponse
 from ..containers import Container
 
 import pydantic
@@ -15,27 +15,13 @@ from pydantic import BaseModel, EmailStr
 
 ### Schema
 
-class UserBase(BaseModel):
-    id: Optional[int]
-    full_name: Optional[str]
-    email: Optional[str]
-    hashed_password: Optional[str]
-    is_active: bool = True
-    is_superuser: bool = False
-
-
-class UserResponse(UserBase):
-    id: int
-    full_name: str
-    email: str
-    is_active: bool
-    is_superuser: bool
-
-
-class UserProfileResponse(BaseModel):
-    full_name: str
-    email: str
-
+#class UserBase(BaseModel):
+#    id: Optional[int]
+#    full_name: Optional[str]
+#    email: Optional[str]
+#    hashed_password: Optional[str]
+#    is_active: bool = True
+#    is_superuser: bool = False
 
 ### ORM
 
@@ -45,7 +31,7 @@ class User(base.ModelBase, base.DataModel):
     # pylint: disable=too-few-public-methods
 
     __tablename__ = "users"
-    base_schema = UserBase
+    default_schema = UserProfileResponse
 
     id:int = Column(Integer, primary_key=True, index=True)
     full_name:str = Column(String, index=True)
