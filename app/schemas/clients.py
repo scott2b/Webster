@@ -2,7 +2,7 @@ import datetime
 from pydantic import BaseModel, validator
 from typing import List, Optional
 from ..orm.user import User
-from ..auth.security import create_random_key
+from ..auth import create_random_key
 from ..orm.oauth2 import CLIENT_ID_BYTES, CLIENT_SECRET_BYTES
 
 class OAuth2ClientBase(BaseModel):

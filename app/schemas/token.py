@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, validator
 from ..orm.oauth2.client import OAuth2Client
-from ..auth.security import create_random_key
+from ..auth import create_random_key
 from ..orm.oauth2 import ACCESS_TOKEN_BYTES, REFRESH_TOKEN_BYTES
 
 
