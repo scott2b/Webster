@@ -7,8 +7,8 @@ from alembic import context
 sys.path = ['', '..'] + sys.path[1:]
 from app.orm.base import ModelBase
 from app.orm.user import User
-from app.orm.oauth2.client import OAuth2Client
-from app.orm.oauth2.token import OAuth2Token
+from app.orm.oauth2client import OAuth2Client
+from app.orm.oauth2token import OAuth2Token
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
