@@ -12,7 +12,7 @@ from sqlalchemy import UniqueConstraint
 from .. import base
 from ..user import User
 from ...containers import Container
-from ...schemas.clients import OAuth2ClientCreate, OAuth2ClientUpdate
+from ...schemas.oauth2client import OAuth2ClientCreate, OAuth2ClientUpdate
 from . import (
     CLIENT_ID_BYTES,
     CLIENT_SECRET_BYTES,

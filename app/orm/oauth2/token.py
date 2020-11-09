@@ -10,7 +10,7 @@ from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Bool
 from sqlalchemy.orm import relationship, Session
 from .. import base
 from ...containers import Container
-from ...schemas.token import TokenCreateRequest, TokenRefreshRequest, OAuth2TokenCreate
+from ...schemas.oauth2token import TokenCreateRequest, TokenRefreshRequest, OAuth2TokenCreate
 from .client import oauth2_clients, OAuth2Client
 from ..user import User
 from . import ACCESS_TOKEN_MAX_CHARS, REFRESH_TOKEN_MAX_CHARS
