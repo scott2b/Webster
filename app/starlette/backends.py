@@ -1,7 +1,7 @@
 import datetime
 from starlette.authentication import AuthenticationBackend, AuthCredentials, SimpleUser
 from .. import orm
-from ..orm.oauth2.token import OAuth2Token
+from ..orm.oauth2token import OAuth2Token
 from ..orm.db import session_scope
 from ..orm.user import User
 from .. import containers

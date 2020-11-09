@@ -2,7 +2,7 @@ from spectree import Response
 from starlette.authentication import requires
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
-from ...orm.oauth2.client import OAuth2Client
+from ...orm.oauth2client import OAuth2Client
 from ...schemas.oauth2client import (
     OAuth2ClientCreate,
     OAuth2ClientResponse,

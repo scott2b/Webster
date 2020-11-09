@@ -16,12 +16,12 @@ a decorator for db session management and only injecting into the decorator
 from ..containers import Container
 from ..orm import db #, oauth2
 from ..orm import user, base
-from ..orm.oauth2 import client, token
+from ..orm import oauth2client, oauth2token
 container = Container()
 container.init_resources()
 #container.config.from_ini('config.ini')
 import sys
-container.wire(modules=[db, base, user, client, token])
+container.wire(modules=[db, base, user, oauth2client, oauth2token])
 # TODO: why can't we do this? The api module in particular seems problematic:
 # container.wire(modules=[db, ui, api])
 from . import ui, api

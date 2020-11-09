@@ -3,9 +3,9 @@ import secrets
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, validator
-from ..orm.oauth2.client import OAuth2Client
+from ..orm.oauth2client import OAuth2Client
 from ..auth import create_random_key
-from ..orm.oauth2 import ACCESS_TOKEN_BYTES, REFRESH_TOKEN_BYTES
+from ..orm import OAUTH2_ACCESS_TOKEN_BYTES, OAUTH2_REFRESH_TOKEN_BYTES
 
 
 
@@ -81,14 +81,14 @@ class _TokenRequest(BaseModel):
     @classmethod
     def generate_access_token(cls, v):
         if not v:
-            v = create_random_key(ACCESS_TOKEN_BYTES)
+            v = create_random_key(OAUTH2_ACCESS_TOKEN_BYTES)
         return v
 
     @validator('refresh_token', always=True)
     @classmethod
     def generate_refresh_token(cls, v):
         if not v:
-            v = create_random_key(REFRESH_TOKEN_BYTES)
+            v = create_random_key(OAUTH2_REFRESH_TOKEN_BYTES)
         return v
 
 

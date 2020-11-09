@@ -8,12 +8,12 @@ from pydantic import BaseModel, validator # pylint:disable=no-name-in-module
 from dependency_injector.wiring import Provide, Closing
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship, Session
-from .. import base
-from ...containers import Container
-from ...schemas.oauth2token import TokenCreateRequest, TokenRefreshRequest, OAuth2TokenCreate
-from .client import oauth2_clients, OAuth2Client
-from ..user import User
-from . import ACCESS_TOKEN_MAX_CHARS, REFRESH_TOKEN_MAX_CHARS
+from . import base
+from ..containers import Container
+from ..schemas.oauth2token import TokenCreateRequest, TokenRefreshRequest, OAuth2TokenCreate
+from .oauth2client import oauth2_clients, OAuth2Client
+from .user import User
+from . import OAUTH2_ACCESS_TOKEN_MAX_CHARS, OAUTH2_REFRESH_TOKEN_MAX_CHARS
 
 
 class InvalidGrantType(Exception):
@@ -40,9 +40,9 @@ class OAuth2Token(base.ModelBase, base.DataModel):
         Integer, ForeignKey('oauth2_clients.id', ondelete='CASCADE')
     )
     token_type:str = Column(String(40))
-    access_token:str = Column(String(ACCESS_TOKEN_MAX_CHARS), index=True,
+    access_token:str = Column(String(OAUTH2_ACCESS_TOKEN_MAX_CHARS), index=True,
                           unique=True, nullable=False)
-    refresh_token:str = Column(String(REFRESH_TOKEN_MAX_CHARS), index=True,
+    refresh_token:str = Column(String(OAUTH2_REFRESH_TOKEN_MAX_CHARS), index=True,
                            unique=True)
     scope:str = Column(Text, default='')
     revoked:bool = Column(Boolean, default=False)

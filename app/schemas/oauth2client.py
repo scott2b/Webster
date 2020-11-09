@@ -3,7 +3,7 @@ from pydantic import BaseModel, validator
 from typing import List, Optional
 from ..orm.user import User
 from ..auth import create_random_key
-from ..orm.oauth2 import CLIENT_ID_BYTES, CLIENT_SECRET_BYTES
+from ..orm import OAUTH2_CLIENT_ID_BYTES, OAUTH2_CLIENT_SECRET_BYTES
 
 class OAuth2ClientBase(BaseModel):
     """OAuth2 API client base validator."""
@@ -33,13 +33,13 @@ class OAuth2ClientCreate(OAuth2ClientBase):
     @classmethod
     def generate_client_id(cls, v):
         """Generate the client ID."""
-        return create_random_key(CLIENT_ID_BYTES)
+        return create_random_key(OAUTH2_CLIENT_ID_BYTES)
 
     @validator('client_secret', always=True)
     @classmethod
     def generate_client_secret(cls, v):
         """Generate the client secret."""
-        return create_random_key(CLIENT_SECRET_BYTES)
+        return create_random_key(OAUTH2_CLIENT_SECRET_BYTES)
 
 
 class OAuth2ClientUpdate(OAuth2ClientBase):

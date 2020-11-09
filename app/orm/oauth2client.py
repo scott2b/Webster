@@ -9,15 +9,15 @@ from dependency_injector.wiring import Provide, Closing
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy import UniqueConstraint
-from .. import base
-from ..user import User
-from ...containers import Container
-from ...schemas.oauth2client import OAuth2ClientCreate, OAuth2ClientUpdate
+from . import base
+from .user import User
+from ..containers import Container
+from ..schemas.oauth2client import OAuth2ClientCreate, OAuth2ClientUpdate
 from . import (
-    CLIENT_ID_BYTES,
-    CLIENT_SECRET_BYTES,
-    CLIENT_ID_MAX_CHARS,
-    CLIENT_SECRET_MAX_CHARS
+    OAUTH2_CLIENT_ID_BYTES,
+    OAUTH2_CLIENT_SECRET_BYTES,
+    OAUTH2_CLIENT_ID_MAX_CHARS,
+    OAUTH2_CLIENT_SECRET_MAX_CHARS
 )
 
 
@@ -47,9 +47,9 @@ class OAuth2Client(base.ModelBase, base.DataModel):
 
     id:int = Column(Integer, primary_key=True)
     name:str = Column(String(100), nullable=False, default='Primary')
-    client_id:str = Column(String(CLIENT_ID_MAX_CHARS), unique=True,
+    client_id:str = Column(String(OAUTH2_CLIENT_ID_MAX_CHARS), unique=True,
         index=True, nullable=False)
-    client_secret:str = Column(String(CLIENT_SECRET_MAX_CHARS), unique=True,
+    client_secret:str = Column(String(OAUTH2_CLIENT_SECRET_MAX_CHARS), unique=True,
         index=True, nullable=False)
     created_at:datetime.datetime = Column(DateTime, nullable=False,
         default=datetime.datetime.utcnow)
