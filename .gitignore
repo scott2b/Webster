@@ -1,5 +1,7 @@
 alembic.ini
 
+app/custom/
+
 # sqlite
 *.db
 
