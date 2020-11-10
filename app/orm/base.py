@@ -11,7 +11,6 @@ https://fastapi.tiangolo.com/python-types/
 import dataclasses
 from typing import Any, Dict, Generic, List, Optional, Protocol
 from typing import Type, TypeVar, Union
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from sqlalchemy import exc
 from sqlalchemy.ext.declarative import declarative_base
@@ -33,6 +32,7 @@ class Exists(Exception):
 
 
 class ModelExceptions():
+    """Exceptions mixin for models."""
 
     DoesNotExist = DoesNotExist
     Exists = Exists
@@ -42,15 +42,18 @@ class DefaultSchema(pydantic.BaseModel):
     """
     Default schema for a DataModel which just allows all fields given.
     """
+
     class Config:
+        """Configure DefaultSchema"""
         extra = 'allow'
 
 
 class DataModel(ModelExceptions):
     """Subclasses should be @dataclass annotated."""
-    default_schema = DefaultSchema 
-    
+    default_schema = DefaultSchema
+
     def data_model(self, model=None):
+        """Get the data of this instance, constructed as the specified model."""
         if model is None:
             model = self.default_schema
         data = dataclasses.asdict(self)
@@ -72,16 +75,15 @@ ModelTypeVar = TypeVar("ModelTypeVar", bound=DeclarativeMeta, covariant=True)
 
 class ModelTypeInterface(Protocol[ModelTypeVar]):
     """Interface for ModelType."""
-    # pylint: disable=too-few-public-methods
     id:int
 
 ModelType = TypeVar("ModelType", bound=ModelTypeInterface)
 
 
 CreateSchemaType = TypeVar(
-    "CreateSchemaType", bound=pydantic.BaseModel)  # pylint: disable=no-member
+    "CreateSchemaType", bound=pydantic.BaseModel)
 UpdateSchemaType = TypeVar(
-    "UpdateSchemaType", bound=pydantic.BaseModel)  # pylint: disable=no-member
+    "UpdateSchemaType", bound=pydantic.BaseModel)
 
 
 class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
@@ -96,7 +98,7 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    def get(self, id:Any,  # pylint: disable=redefined-builtin
+    def get(self, id:Any,
             *, db:Session = Closing[Provide[Container.closed_db]]
     ) -> Optional[ModelType]:
         """Get an instance of ModelType by id."""
@@ -123,9 +125,9 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db.add(db_obj)
             db.commit()
             return db_obj
-        except exc.IntegrityError:
+        except exc.IntegrityError as e:
             db.rollback()
-            raise self.model.Exists
+            raise self.model.Exists from e
 
     def update(
             self, *,
@@ -151,10 +153,10 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def delete(
-            self, *, id: int,  # pylint:disable=redefined-builtin
+            self, *, id: int,
             db:Session = Closing[Provide[Container.closed_db]]) -> ModelType:
         """Delete from the database by id."""
-        raise Exception('Not implemented')
         obj = db.query(self.model).get(id)
         db.delete(obj)
+        db.commit()
         return obj

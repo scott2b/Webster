@@ -1,6 +1,6 @@
 """User ORM model and object manager."""
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Union
+from typing import Optional
 from dependency_injector.wiring import Closing, Provide
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import Session
@@ -9,9 +9,7 @@ from ..auth import get_password_hash, verify_password
 from ..schemas.user import UserCreate, UserUpdateRequest, UserProfileResponse
 from ..containers import Container
 
-import pydantic
 
-from pydantic import BaseModel, EmailStr
 
 ### Schema
 
@@ -28,7 +26,6 @@ from pydantic import BaseModel, EmailStr
 @dataclass
 class User(base.ModelBase, base.DataModel):
     """User model."""
-    # pylint: disable=too-few-public-methods
 
     __tablename__ = "users"
     default_schema = UserProfileResponse
@@ -55,9 +52,8 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
         """Get user by email address."""
         return db.query(User).filter(User.email == email).first()
 
-    @classmethod
-    def create(cls, *,
-            obj_in: UserCreate,
+    def create(self,
+            obj_in: UserCreate, *,
             db:Session = Closing[Provide[Container.closed_db]]) -> User:
         """Create a new user in the database."""
         db_obj = User(

@@ -4,7 +4,6 @@ https://docs.authlib.org/en/latest/flask/2/authorization-server.html
 import datetime
 from dataclasses import dataclass
 from typing import Optional
-from pydantic import BaseModel, validator # pylint:disable=no-name-in-module
 from dependency_injector.wiring import Provide, Closing
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship, Session
@@ -12,7 +11,6 @@ from . import base
 from ..containers import Container
 from ..schemas.oauth2token import TokenCreateRequest, TokenRefreshRequest, OAuth2TokenCreate
 from .oauth2client import oauth2_clients, OAuth2Client
-from .user import User
 from . import OAUTH2_ACCESS_TOKEN_MAX_CHARS, OAUTH2_REFRESH_TOKEN_MAX_CHARS
 
 
@@ -31,7 +29,6 @@ class Expired(Exception):
 @dataclass
 class OAuth2Token(base.ModelBase, base.DataModel):
     """OAuth2 token model with access and refresh data."""
-    # pylint: disable=too-few-public-methods
 
     __tablename__ = 'oauth2_tokens'
 

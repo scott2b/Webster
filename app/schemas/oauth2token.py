@@ -1,5 +1,7 @@
+"""
+Schema for OAuth2 tokens
+"""
 import datetime
-import secrets
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, validator
@@ -19,11 +21,13 @@ from ..orm import OAUTH2_ACCESS_TOKEN_BYTES, OAUTH2_REFRESH_TOKEN_BYTES
 
 
 class GrantTypes(str, Enum):
+    """Valid grant types"""
     client_credentials = 'client_credentials'
     refresh_token = 'refresh_token'
 
 
 class OAuth2TokenCreate(BaseModel):
+    """Token creation schema"""
 
     class Config:
         """Configure TokenCreate"""
@@ -59,27 +63,29 @@ class _TokenRequest(BaseModel):
     @validator('access_token_expires_at', always=True)
     @classmethod
     def set_access_token_expires_at(cls, v, values):
-        print('SETTING ACCESS EXPIRES')
+        """Set the access token expire"""
         if not v and 'access_lifetime' in values:
             delta = values['access_lifetime']
             v = datetime.datetime.utcnow() \
                 + datetime.timedelta(seconds=delta)
             del values['access_lifetime']
         return v
-    
+
     @validator('refresh_token_expires_at', always=True)
     @classmethod
     def set_refresh_token_expires_at(cls, v, values):
+        """Set the token expire"""
         if not v and 'refresh_lifetime' in values:
             delta = values['refresh_lifetime']
             v = datetime.datetime.utcnow() \
                 + datetime.timedelta(seconds=delta)
             del values['refresh_lifetime']
         return v
-    
+
     @validator('access_token', always=True)
     @classmethod
     def generate_access_token(cls, v):
+        """Generate the access token"""
         if not v:
             v = create_random_key(OAUTH2_ACCESS_TOKEN_BYTES)
         return v
@@ -87,6 +93,7 @@ class _TokenRequest(BaseModel):
     @validator('refresh_token', always=True)
     @classmethod
     def generate_refresh_token(cls, v):
+        """Generate the refresh token"""
         if not v:
             v = create_random_key(OAUTH2_REFRESH_TOKEN_BYTES)
         return v
@@ -96,7 +103,6 @@ class TokenCreateRequest(_TokenRequest):
     """Validate a request for a new token request from the API. Generates and
     sets the token values.
     """
-    # pylint: disable=too-few-public-methods
     grant_type: GrantTypes
     token_type: str  = 'Bearer'
     client_id: str
@@ -112,6 +118,7 @@ class TokenCreateRequest(_TokenRequest):
     @validator('grant_type')
     @classmethod
     def check_grant_type(cls, v, values):
+        """Check for valid grant type"""
         if v == GrantTypes.client_credentials:
             return v
         raise ValueError('Invalid Grant Type')
@@ -119,7 +126,6 @@ class TokenCreateRequest(_TokenRequest):
 
 class TokenRefreshRequest(_TokenRequest):
     """Validate token refresh request."""
-    # pylint: disable=too-few-public-methods
     grant_type: GrantTypes
     refresh_token: str
 
@@ -130,14 +136,14 @@ class TokenRefreshRequest(_TokenRequest):
     @validator('grant_type')
     @classmethod
     def check_grant_type(cls, v):
+        """Check for valid grant type"""
         if v == GrantTypes.refresh_token:
             return v
         raise ValueError('Invalid Grant Type')
-    
+
 
 class TokenResponse(BaseModel):
     """client_credentials granted access token of Bearer type."""
-    # pylint: disable=too-few-public-methods
     access_token: str
     token_type: str
     refresh_token: str
@@ -168,6 +174,4 @@ class ScopedTokenResponse(TokenResponse):
     Not really needed for client_credentials, which is all we are supporting
     at the moment.
     """
-    # pylint: disable=too-few-public-methods
     scope: str
-

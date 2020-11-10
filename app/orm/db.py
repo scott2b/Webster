@@ -1,3 +1,6 @@
+"""
+Database/db-session  management resources
+"""
 from contextlib import contextmanager
 import functools
 from sqlalchemy.orm import Session

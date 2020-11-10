@@ -1,5 +1,9 @@
+"""
+Schema for User
+"""
 from typing import Optional
-from pydantic import BaseModel, EmailStr, ValidationError
+from pydantic import BaseModel, EmailStr, validator
+from ..auth import get_password_hash
 
 
 ## Shared properties
@@ -10,18 +14,15 @@ from pydantic import BaseModel, EmailStr, ValidationError
 #    full_name: Optional[str] = None
 
 
-# Properties to receive via API on creation
 class UserCreate(BaseModel):
+    """Create user schema"""
     email: EmailStr
     password: str
 
-from ..auth import get_password_hash, verify_password
-from pydantic import validator
-
 
 """
-Here is a good example of how FastAPI's approach to hierarchical schemas can
-lead to security vulnerabilities. If we inherit a user base here which contains
+Here is an example of how FastAPI's approach to hierarchical schemas can lead
+to security vulnerabilities. If we inherit a user base here which contains
 is_supervisor, and then use this as the input validator to an update request
 from the user, then we simply have exposed the ability for users to make
 themselves superusers.
@@ -32,11 +33,13 @@ validator to allow for such changes.
 """
 
 class UserUpdateRequest(BaseModel):
+    """User update request schema"""
     email: Optional[str]
     full_name: Optional[str]
 
 
 class AdministrativeUserUpdateRequest(BaseModel):
+    """Update to be accessible by admins only"""
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = True
     is_superuser: bool = False
@@ -44,6 +47,7 @@ class AdministrativeUserUpdateRequest(BaseModel):
 
 
 class UserPasswordUpdateRequest(BaseModel):
+    """Password update schema"""
 
     password: Optional[str]
     hashed_password: Optional[str]
@@ -51,23 +55,25 @@ class UserPasswordUpdateRequest(BaseModel):
     @validator('hashed_password', always=True)
     @classmethod
     def hash_password(cls, v, values):
+        """Hash the password"""
         if values.get('password'):
             return get_password_hash(values['password'])
         raise ValueError('Invalid password')
 
 
 class UserProfileResponse(BaseModel):
+    """Profile response"""
     full_name: str
     email: str
 
 
 class AdministrativeUserProfileResponse(BaseModel):
+    """Profile response to be accessible by admins only"""
     id: int
     full_name: str
     email: str
     is_active: bool
     is_superuser: bool
-
 
 
 #class UserInDBBase(UserBase):

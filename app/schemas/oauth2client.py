@@ -1,6 +1,9 @@
+"""
+Schema for OAuth2 application client
+"""
 import datetime
-from pydantic import BaseModel, validator
 from typing import List, Optional
+from pydantic import BaseModel, validator
 from ..orm.user import User
 from ..auth import create_random_key
 from ..orm import OAUTH2_CLIENT_ID_BYTES, OAUTH2_CLIENT_SECRET_BYTES
@@ -47,12 +50,13 @@ class OAuth2ClientUpdate(OAuth2ClientBase):
     name: str
 
 
-    
 class OAuth2ClientRequest(BaseModel):
+    """Client request schema"""
     name: str
 
 
 class OAuth2ClientResponse(BaseModel):
+    """Client response schema"""
 
     class Config:
         """Configure TokenCreate"""
@@ -70,15 +74,16 @@ class OAuth2ClientResponse(BaseModel):
         """Convert the created_at field to a string."""
         if v:
             return v.isoformat()
-    
+        return None
+
     @validator('secret_expires_at')
     @classmethod
     def serialize_secret_expires_at(cls, v):
         """Convert the secret_expires_at field to a string."""
         if v:
             return v.isoformat()
+        return None
 
 class OAuth2ClientListResponse(BaseModel):
+    """Client list schema"""
     clients: List[OAuth2ClientResponse]
-
-

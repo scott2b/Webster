@@ -13,24 +13,12 @@ from . import base
 from .user import User
 from ..containers import Container
 from ..schemas.oauth2client import OAuth2ClientCreate, OAuth2ClientUpdate
-from . import (
-    OAUTH2_CLIENT_ID_BYTES,
-    OAUTH2_CLIENT_SECRET_BYTES,
-    OAUTH2_CLIENT_ID_MAX_CHARS,
-    OAUTH2_CLIENT_SECRET_MAX_CHARS
-)
-
-
+from . import OAUTH2_CLIENT_ID_MAX_CHARS, OAUTH2_CLIENT_SECRET_MAX_CHARS
 
 
 class InvalidOAuth2Client(Exception):
     """Invalid OAuth2 client."""
 
-
-### Schema
-
-
-### ORM
 
 @dataclass
 class OAuth2Client(base.ModelBase, base.DataModel):
@@ -38,7 +26,6 @@ class OAuth2Client(base.ModelBase, base.DataModel):
 
     TODO: user should be non-nullable
     """
-    # pylint: disable=too-few-public-methods
 
     __tablename__ = 'oauth2_clients'
     __table_args__ = (
@@ -58,7 +45,7 @@ class OAuth2Client(base.ModelBase, base.DataModel):
         Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     user = relationship('User') # type: ignore
 
-    InvalidOAuth2Client = InvalidOAuth2Client
+    InvalidOAuth2Client = InvalidOAuth2Client # pylint:disable=invalid-name
 
     def compare_secret(self, secret):
         """Compare a given secret with the secret for this instance.
