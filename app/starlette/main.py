@@ -51,7 +51,7 @@ app_routes = [
     Route('/apps', oauth2.client_apps, methods=['GET', 'POST']),
     #Route('/client-form', ui.client_form, methods=['POST']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
-    Mount('', app=api.get_app()),
+    Mount('/v1', app=api.get_app()),
 ]
 
 app = Starlette(
