@@ -11,63 +11,12 @@ from dependency_injector.wiring import Provide
 from .. import containers
 from ..orm.oauth2client import OAuth2Client, OAuth2ClientCreate
 
-
-from starlette.requests import Request
-from starlette.templating import Jinja2Templates
-import inspect
-import types
-
 from ..forms import UserForm, PasswordForm, LoginForm, APIClientForm
+from ..messages import add_message
 
 
-def _clear_messages(request):
-    """Call from a template after rendering messages to clear out the current
-    message list. Requires session middleware.
-    """
-    request.session['messages']= []
-    return ''
-
-
-def add_message(request, message):
-    """Add a message to the session messages list."""
-    if not 'messages' in request.session:
-        request.session['messages'] = []
-    request.session['messages'].append(message)
-
-
-class Templates(Jinja2Templates):
-
-    def TemplateResponse(
-        self,
-        name: str,
-        context: dict,
-        **kwargs
-    ):
-        """Render a template response.
-
-        If it exists and is not already set in the context, injects the
-        request object from the calling scope into the template context.
-
-        Adds a clear_request method to the request instance.
-        """ 
-        if 'request' in context:
-            req = context['request']
-            if isinstance(req, Request):
-                req.clear_messages = types.MethodType(_clear_messages, req)
-        else:
-            frame = inspect.currentframe()
-            try:
-                _locals = frame.f_back.f_locals
-                req = _locals.get('request')
-                if req is not None and isinstance(req, Request):
-                    context['request'] = req
-                    req.clear_messages = types.MethodType(_clear_messages, req)
-            finally:
-                del frame
-        return super().TemplateResponse(name, context, **kwargs)
-    
-
-templates = Templates(directory='templates')
+from .templates import Templates
+render = Templates(directory='templates').TemplateResponse
 
 
 from jinja2.ext import Extension
@@ -86,7 +35,7 @@ async def login(request):
             add_message(request, f'You are now logged in as: {user.full_name}')
             next = request.query_params.get('next', '/')
             return RedirectResponse(url=next, status_code=302)
-    return templates.TemplateResponse('login.html', {
+    return render('login.html', {
         'form': form,
     })
 
@@ -110,7 +59,7 @@ async def client_form(request):
             OAuth2ClientCreate(user=request.user, **data))
         next = request.query_params.get('next', '/')
         return RedirectResponse(url=next, status_code=302)
-    return templates.TemplateResponse('_client.html', {
+    return render('_client.html', {
         'form': form,
     })
 
@@ -123,7 +72,7 @@ async def homepage(request):
         api_clients = OAuth2Client.objects.fetch_for_user(request.user)
     else:
         api_clients = []
-    return templates.TemplateResponse('home.html', {
+    return render('home.html', {
         'form': form,
         'client_form': client_form,
         'api_clients': api_clients,
@@ -133,7 +82,7 @@ async def homepage(request):
 @requires('admin_auth', status_code=403)
 async def users(request):
     users = User.objects.fetch()
-    return templates.TemplateResponse('user-list.html', {
+    return render('user-list.html', {
         'users': users
     })
 
@@ -173,7 +122,7 @@ async def update_user(request):
                 add_message(request, 'Password changed')
         if valid:
             return RedirectResponse(url=request.url.path, status_code=302)
-    return templates.TemplateResponse('user.html', {
+    return render('user.html', {
         'user': user,
         'user_form': user_form,
         'password_form': password_form
