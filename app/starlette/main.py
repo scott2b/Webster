@@ -24,7 +24,7 @@ import sys
 container.wire(modules=[db, base, user, oauth2client, oauth2token])
 # TODO: why can't we do this? The api module in particular seems problematic:
 # container.wire(modules=[db, ui, api])
-from . import ui, api
+from . import ui, auth, api
 
 # end of wiring
 
@@ -70,10 +70,10 @@ app_routes = [
     Route('/users/me', ui.update_user, methods=['GET', 'POST']),
     Route('/users/{user_id:int}', ui.update_user, methods=['GET', 'POST']),
     Route('/users', ui.users, methods=['GET']),
-    Route('/login', ui.login, methods=['GET', 'POST']),
-    Route('/logout', ui.logout),
+    Route('/login', auth.login, methods=['GET', 'POST']),
+    Route('/logout', auth.logout),
     #Route('/users', ui.user, methods=['GET', 'POST']),
-    Route('/verify', ui.password_reset, methods=['GET']),
+    Route('/verify', auth.password_reset, methods=['GET']),
     Route('/client-form', ui.client_form, methods=['POST']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('', app=api.get_app()),

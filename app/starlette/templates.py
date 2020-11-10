@@ -41,3 +41,4 @@ class Templates(Jinja2Templates):
                 del frame
         return super().TemplateResponse(name, context, **kwargs)
     
+render = Templates(directory='templates').TemplateResponse
