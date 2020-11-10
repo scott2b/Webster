@@ -1,6 +1,7 @@
 import click
 from . import orm, schemas
 from .orm.db import session_scope
+from .orm.user import User
 from fastapi.encoders import jsonable_encoder
 
 from .containers import SessionLocal
@@ -37,12 +38,13 @@ def create_user(full_name, email, password, superuser):
 @click.argument('email')
 @click.argument('password')
 def update_user(email, password):
-    session = orm.SessionLocal()
-    user = orm.users.get_by_email(session, email=email)
-    user_data = jsonable_encoder(user)
-    user_in = schemas.UserUpdate(**user_data)
-    user_in.password = password
-    user = orm.users.update(session, db_obj=user, obj_in=user_in)
+    session = SessionLocal()
+    user = User.objects.get_by_email(email=email, db=session)
+    #user_data = jsonable_encoder(user)
+    #user_in = schemas.user.AdministrativeUserUpdateRequest(**user_data)
+    obj_in = schemas.user.AdministrativeUserUpdateRequest(password=password,
+        **user.dict())
+    user = User.objects.update(db_obj=user, obj_in=obj_in, db=session)
 
 
 @click.command()
@@ -51,7 +53,7 @@ def update_user(email, password):
 def create_client(email, create):
     session = SessionLocal()
     from .orm.user import users
-    user = users.get_by_email(session, email=email)
+    user = users.get_by_email(email=email, db=session)
     if create:
         from .orm.oauth2.client import oauth2_clients
         client = oauth2_clients.create_for_user(user, db=session)

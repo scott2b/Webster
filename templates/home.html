@@ -59,7 +59,7 @@
             <h3>User profile</h3>
             <p><strong>{{ request.user.full_name }}</strong></p>
             <p><strong>{{ request.user.email }}</strong></p>
-            <p><a href="/logout">Logout</a></p>
+            <p><a href="/users/me">Edit</a> | <a href="/logout">Logout</a></p>
         </div>
     {% else %}
     <h2>Login</h2>

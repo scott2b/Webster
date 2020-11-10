@@ -7,11 +7,23 @@ section#page {
   grid-auto-rows: minmax(100px, auto);
 }
 
+section#console {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 10px;
+  grid-auto-rows: minmax(100px, auto);
+}
+
 section#banner {
 }
 
-
 section#page div {
+  border: 1px solid #666;
+  padding: 1em;
+  border-radius: 1em;
+}
+
+section#console div {
   border: 1px solid #666;
   padding: 1em;
   border-radius: 1em;

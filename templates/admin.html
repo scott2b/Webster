@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+	<title>Home</title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+<section id="banner">
+  {% if request.session.messages %}
+  <div class="messages">
+    {% include "_messages.html" %}
+  </div>
+  {% endif %}
+</section>
+
+<section id="console">
+  <div>
+    <h2>Admin</h2>
+    <h3>Users</h3>
+    {% for user in users %}
+        <div>
+        {{ user.email }}: {{ user.full_name }}
+        </div>
+    {% endfor %}
+  </div>
+</section>
+</body>

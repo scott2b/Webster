@@ -1,4 +1,3 @@
-{% include "_messages.html" %}
 <form method="POST" action="{{ action }}">
     {{ form.csrf_token }}
     {{ form.name.label }}: {{ form.name(class="css_class") }}

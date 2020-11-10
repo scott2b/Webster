@@ -42,6 +42,16 @@ class User(base.ModelBase, base.DataModel):
         """All user objects are authenticated."""
         return True
 
+    def verify_password(self, password):
+        return verify_password(password, self.hashed_password)
+
+    def change_password(self, current_password, new_password):
+        if verify_password(current_password, self.hashed_password):
+            self.hashed_password = get_password_hash(new_password)
+            self.save()
+            return True
+        else:
+            return False
 
 class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
     """User object manager."""
@@ -56,12 +66,14 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
             obj_in: UserCreate, *,
             db:Session = Closing[Provide[Container.closed_db]]) -> User:
         """Create a new user in the database."""
-        db_obj = User(
-            email=obj_in.email,
-            hashed_password=get_password_hash(obj_in.password),
-            full_name=obj_in.full_name,
-            is_superuser=obj_in.is_superuser,
-        )
+        #db_obj = User(
+        #    email=obj_in.email,
+        #    hashed_password=get_password_hash(obj_in.password),
+        #    full_name=obj_in.full_name,
+        #    is_superuser=obj_in.is_superuser,
+        #)
+
+        db_obj = User(**UserCreate(**obj_in.dict()).dict())
         db.add(db_obj)
         return db_obj
 

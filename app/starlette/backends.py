@@ -16,7 +16,10 @@ class SessionAuthBackend(AuthenticationBackend):
             user_id = request.session['user_id']
             with session_scope() as db:
                 user = User.objects.get(user_id, db=db)
-            return AuthCredentials(['app_auth']), user
+            creds = ['app_auth']
+            if user.is_superuser:
+                creds.append('admin_auth')
+            return AuthCredentials(creds), user
         if request.headers.get('authorization'):
             bearer = request.headers['authorization'].split()
             if bearer[0] != 'Bearer':

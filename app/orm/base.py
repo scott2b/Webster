@@ -70,6 +70,14 @@ class DataModel(ModelExceptions):
         _d = self.data_model(model=model)
         return _d.json()
 
+    def save(self, *,
+            db:Session = Closing[Provide[Container.closed_db]]):
+        """Update the data in the database."""
+        if not hasattr(self, 'id') or not self.id:
+            raise Exception('Unable to save model without id')
+        db.add(self)
+        db.commit()
+        return self
 
 ModelTypeVar = TypeVar("ModelTypeVar", bound=DeclarativeMeta, covariant=True)
 

@@ -3,7 +3,7 @@ Schema for User
 """
 from typing import Optional
 from pydantic import BaseModel, EmailStr, validator
-from ..auth import get_password_hash
+from ..auth import get_password_hash, create_random_key
 
 
 ## Shared properties
@@ -13,11 +13,30 @@ from ..auth import get_password_hash
 #    is_superuser: bool = False
 #    full_name: Optional[str] = None
 
+AUTO_PASSWORD_BYTES = 16
+
 
 class UserCreate(BaseModel):
     """Create user schema"""
+    full_name: str
     email: EmailStr
-    password: str
+    hashed_password: str
+
+class UserCreateRequest(UserCreate):
+    """Create user schema"""
+    full_name: str
+    email: EmailStr
+    password: Optional[str]
+    hashed_password: Optional[str]
+
+    @validator('hashed_password', always=True)
+    @classmethod
+    def hash_password(cls, v, values):
+        """Hash the password"""
+        if values.get('password'):
+            return get_password_hash(values['password'])
+        else:
+            return get_password_hash(create_random_key(AUTO_PASSWORD_BYTES))
 
 
 """
@@ -44,6 +63,17 @@ class AdministrativeUserUpdateRequest(BaseModel):
     is_active: Optional[bool] = True
     is_superuser: bool = False
     full_name: Optional[str] = None
+    password: Optional[str]
+    hashed_password: Optional[str]
+
+    @validator('hashed_password', always=True)
+    @classmethod
+    def hash_password(cls, v, values):
+        """Hash the password"""
+        if values.get('password'):
+            return get_password_hash(values['password'])
+        raise ValueError('Invalid password')
+
 
 
 class UserPasswordUpdateRequest(BaseModel):

@@ -67,8 +67,13 @@ def startup():
 
 app_routes = [
     Route('/', ui.homepage, methods=['GET', 'POST']),
+    Route('/users/me', ui.update_user, methods=['GET', 'POST']),
+    Route('/users/{user_id:int}', ui.update_user, methods=['GET', 'POST']),
+    Route('/users', ui.users, methods=['GET']),
     Route('/login', ui.login, methods=['GET', 'POST']),
     Route('/logout', ui.logout),
+    Route('/users', ui.user, methods=['GET', 'POST']),
+    Route('/verify', ui.password_reset, methods=['GET']),
     Route('/client-form', ui.client_form, methods=['POST']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('', app=api.get_app()),
