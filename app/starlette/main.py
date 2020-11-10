@@ -28,37 +28,11 @@ from . import ui, auth, api
 
 # end of wiring
 
-from dependency_injector.wiring import Provide
 from starlette.applications import Starlette
-from starlette.middleware.authentication import AuthenticationMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 from starlette.routing import Route, Mount, WebSocketRoute, Router
 from starlette.staticfiles import StaticFiles
 from ..config import settings
-from . import backends
-
-
-class CustomMiddleware(BaseHTTPMiddleware):
-    """From: https://github.com/encode/starlette/blob/7f8cd041734be3b290cdb178e99c37e1d5a19b41/tests/middleware/test_base.py#L11
-
-    Example of Custom Middleware. Add to app below with `add_middleware` if implemented.
-    """
-    async def dispatch(self, request, call_next):
-        response = await call_next(request)
-        response.headers["Custom-Header"] = "Example"
-        return response
-
-
-#class MessagingMiddleware(BaseHTTPMiddleware):
-#
-#    async def dispatch(self, request, call_next):
-#        response = await call_next(request)
-#        if hasattr(request, 'session'):
-#            if 'messages' in request.session:
-#                messages = request.session['messages']
-#        return response
+from .middleware import setup_middleware
 
 
 def startup():
@@ -84,30 +58,4 @@ app = Starlette(
     routes=app_routes,
     on_startup=[startup])
 
-
-#app.add_middleware(
-#    MessagingMiddleware)
-
-
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-
-app.add_middleware(
-    AuthenticationMiddleware,
-    backend=backends.SessionAuthBackend())
-
-
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.SECRET_KEY,
-    session_cookie=settings.SESSION_COOKIE,
-    max_age=settings.SESSION_EXPIRE_SECONDS,
-    same_site=settings.SESSION_SAME_SITE,
-    https_only=False)
+setup_middleware(app)
