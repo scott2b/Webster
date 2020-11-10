@@ -14,8 +14,11 @@
   {% endif %}
 </section>
 
-<section id="console">
-  <div>
+<section id="page">
+
+  {% include "_nav.html" %}
+
+  <div class="console">
     <h2>User Profile</h2>
       <div>
         {{ user.email }}: {{ user.full_name }}

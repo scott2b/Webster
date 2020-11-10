@@ -16,6 +16,9 @@
 
 <section id="page">
 
+
+  {% include "_nav.html" %}
+
   <div class="header">
     <h1>Starlight</h1>
     {% if request.user.is_authenticated %}
@@ -24,7 +27,7 @@
     <p>Please sign in</p>
     {% endif %}
     <div>
-      <a href="/docs/api" target="_blank">API Docs</a>
+      <a href="/docs/api" target="api_docs">API Docs</a>
     </div>
   </div>
 

@@ -133,7 +133,7 @@ async def homepage(request):
 @requires('admin_auth', status_code=403)
 async def users(request):
     users = User.objects.fetch()
-    return templates.TemplateResponse('admin.html', {
+    return templates.TemplateResponse('user-list.html', {
         'users': users
     })
 

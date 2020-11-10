@@ -4,26 +4,14 @@ section#page {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-gap: 10px;
-  grid-auto-rows: minmax(100px, auto);
-}
-
-section#console {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 10px;
-  grid-auto-rows: minmax(100px, auto);
+  grid-auto-rows: minmax(3em, auto);
 }
 
 section#banner {
 }
 
-section#page div {
-  border: 1px solid #666;
-  padding: 1em;
-  border-radius: 1em;
-}
 
-section#console div {
+section#page div {
   border: 1px solid #666;
   padding: 1em;
   border-radius: 1em;
@@ -43,17 +31,27 @@ div.messages div {
   border-radius: .5em;
 }
 
+
+.nav {
+  grid-column: 1 / 2;
+  grid-row: 1;
+}
+
 .header {
   grid-column: 1 / 1;
-  grid-row: 1;
+  grid-row: 2;
 }
 .api { 
   grid-column: 2 / 4;
-  grid-row: 1 / 4;
+  grid-row: 2 / 5;
 }
 .profile {
   grid-column: 1;
-  grid-row: 2 / 4;
+  grid-row: 3 / 5;
+}
+.console {
+  grid-column: 1;
+  grid-row: 2
 }
 
 

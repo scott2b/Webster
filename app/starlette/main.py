@@ -72,7 +72,7 @@ app_routes = [
     Route('/users', ui.users, methods=['GET']),
     Route('/login', ui.login, methods=['GET', 'POST']),
     Route('/logout', ui.logout),
-    Route('/users', ui.user, methods=['GET', 'POST']),
+    #Route('/users', ui.user, methods=['GET', 'POST']),
     Route('/verify', ui.password_reset, methods=['GET']),
     Route('/client-form', ui.client_form, methods=['POST']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
