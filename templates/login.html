@@ -1,14 +1,28 @@
-{% include "_messages.html" %}
-<form method="POST" action="{{ action }}">
-    {{ form.csrf_token }}
-    {{ form.email.label }}: {{ form.email(class="css_class") }}
-    {% if form.email.errors %}
-        <ul class="errors">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-    {% endif %}
 
-    {{ form.password.label }}: {{ form.password() }}
-    {% if form.password.errors %}
-        <ul class="errors">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-    {% endif %}
-        <input type="submit" value="login"/>
-</form>
+<!doctype html>
+<html>
+<head>
+	<title>Home</title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+<section id="banner">
+  {% if request.session.messages %}
+  <div class="messages">
+    {% include "_messages.html" %}
+  </div>
+  {% endif %}
+</section>
+
+<section id="page">
+
+  {% include "_nav.html" %}
+
+  <div class="api">
+  {% include "_login.html" %}
+  </div>
+</section>
+
+</body>
+</html>

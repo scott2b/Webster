@@ -19,10 +19,10 @@ class LoginForm(CSRFForm):
     email = StringField('Email address', [validators.Email()])
     password = PasswordField('Password')
 
-    def __init__(self, data, request, *args, **kwargs):
+    def __init__(self, request, *args, **kwargs):
         self.request = request
         self.user = None
-        super().__init__(data, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def validate_password(form, field):
         _user = User.objects.authenticate(
@@ -85,14 +85,12 @@ class PasswordForm(CSRFForm):
             raise validators.ValidationError('Passwords must match')
 
 
-
-
 class APIClientForm(CSRFForm):
     name = StringField('Name')
 
-    def __init__(self, data, request, *args, **kwargs):
+    def __init__(self, request, *args, **kwargs):
         self.request = request
-        super().__init__(data, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def validate_name(self, field):
         exists = OAuth2Client.objects.exists(self.request.user, field.data) 

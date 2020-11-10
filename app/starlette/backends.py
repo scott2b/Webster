@@ -1,21 +1,15 @@
 import datetime
-from starlette.authentication import AuthenticationBackend, AuthCredentials, SimpleUser
-from .. import orm
+from starlette.authentication import AuthenticationBackend, AuthCredentials
 from ..orm.oauth2token import OAuth2Token
-from ..orm.db import session_scope
 from ..orm.user import User
-from .. import containers
 
-from dataclasses import dataclass
-import dataclasses
 
 class SessionAuthBackend(AuthenticationBackend):
 
     async def authenticate(self, request):
         if 'user_id' in request.session:
             user_id = request.session['user_id']
-            with session_scope() as db:
-                user = User.objects.get(user_id, db=db)
+            user = User.objects.get(user_id)
             creds = ['app_auth']
             if user.is_superuser:
                 creds.append('admin_auth')

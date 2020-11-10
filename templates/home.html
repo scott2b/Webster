@@ -31,31 +31,6 @@
     </div>
   </div>
 
-  <div class="api">
-    {% if request.user.is_authenticated %}
-    <h3>API</h3>
-    <h4>Create a new API client</h4>
-    {% with form=client_form %}
-        {% with action='/client-form?next=/' %}
-            {% include "_client.html" %}
-        {% endwith %}
-    {% endwith %}
-    <h4>API client applications</h4>
-    {% for client in api_clients %}
-        <div style="border:1px solid blue; margin-top:1em;">
-        <p><strong>NAME:</strong> {{ client.name }}</p>
-        <p><strong>ID:</strong> {{ client.client_id }}</p>
-        <p><strong>SECRET:</strong> {{ client.client_secret }}</p>
-        <form action="/client-form?next=/" method="POST">
-            <input type="hidden" name="delete" value="delete" />
-            <input type="hidden" name="client_id" value="{{client.client_id}}" />
-            <input type="submit" value="Delete" />
-        </form>
-        </div>
-    {% endfor %}
-    {% endif %}
-  </div>
-
   <div class="profile">
     {% if request.user.is_authenticated %}
         <div>
@@ -67,8 +42,10 @@
     {% else %}
     <h2>Login</h2>
       <div>
-      {% with action='/login?next=/' %}
-        {% include "login.html" %}
+      {% with form=login_form %}
+        {% with action='/login?next=/' %}
+          {% include "_login.html" %}
+        {% endwith %}
       {% endwith %}
       </div>
     {% endif %}

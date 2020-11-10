@@ -1,13 +1,6 @@
-from ..orm import user
-from ..orm.db import db_session, session_scope
 from starlette.authentication import requires
 from starlette.exceptions import HTTPException
-from starlette.responses import PlainTextResponse, HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
-from sqlalchemy import exc
-from dependency_injector.wiring import Closing
-from dependency_injector.wiring import Provide
-from .. import containers
+from starlette.responses import RedirectResponse
 from ..orm.oauth2client import OAuth2Client, OAuth2ClientCreate
 from ..orm.user import User
 from ..forms import UserForm, PasswordForm, LoginForm, APIClientForm
@@ -15,37 +8,14 @@ from ..messages import add_message
 from .templates import render
 
 
-@requires('app_auth', status_code=403)
-async def client_form(request):
-    data = await request.form()
-    form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
-    if request.method == 'POST' and 'delete' in data:
-        OAuth2Client.objects.delete_for_user(request.user, data['client_id'])
-        next = request.query_params.get('next', '/')
-        return RedirectResponse(url=next, status_code=302)
-    if request.method == 'POST' and form.validate():
-        _client = OAuth2Client.objects.create(
-            OAuth2ClientCreate(user=request.user, **data))
-        next = request.query_params.get('next', '/')
-        return RedirectResponse(url=next, status_code=302)
-    return render('_client.html', {
-        'form': form,
-    })
-
 
 async def homepage(request):
     data = await request.form()
-    form = LoginForm(data, request, meta={ 'csrf_context': request.session })
-    client_form = APIClientForm(data, request, meta={ 'csrf_context': request.session })
-    if request.user.is_authenticated:
-        api_clients = OAuth2Client.objects.fetch_for_user(request.user)
-    else:
-        api_clients = []
+    login_form = LoginForm(request, meta={ 'csrf_context': request.session })
     return render('home.html', {
-        'form': form,
-        'client_form': client_form,
-        'api_clients': api_clients,
+        'login_form': login_form,
     })
+
 
 
 @requires('admin_auth', status_code=403)

@@ -7,7 +7,7 @@ from .templates import render
 
 async def login(request):
     data = await request.form()
-    form = LoginForm(data, request, meta={ 'csrf_context': request.session })
+    form = LoginForm(request, formdata=data, meta={ 'csrf_context': request.session })
     if request.method == 'POST':
         user = form.validate()
         if user:

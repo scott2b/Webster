@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+	<title>Home</title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+<section id="banner">
+  {% if request.session.messages %}
+  <div class="messages">
+    {% include "_messages.html" %}
+  </div>
+  {% endif %}
+</section>
+
+<section id="page">
+
+  {% include "_nav.html" %}
+
+  <div class="api">
+    <h3>API client apps</h3>
+    <h4>Create a new API client</h4>
+    {% with action='/apps' %}
+        {% include "_client.html" %}
+    {% endwith %}
+    <h4>API client applications</h4>
+    {% for client in api_clients %}
+        <div style="border:1px solid blue; margin-top:1em;">
+        <p><strong>NAME:</strong> {{ client.name }}</p>
+        <p><strong>ID:</strong> {{ client.client_id }}</p>
+        <p><strong>SECRET:</strong> {{ client.client_secret }}</p>
+        <form action="/apps" method="POST">
+            <input type="hidden" name="delete" value="delete" />
+            <input type="hidden" name="client_id" value="{{client.client_id}}" />
+            <input type="submit" value="Delete" />
+        </form>
+        </div>
+    {% endfor %}
+  </div>
+<section>
+
+</body>
+
+</html>
