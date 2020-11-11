@@ -25,10 +25,17 @@ div.messages {
 }
 
 div.messages div {
+  position: static;
   border: 1px solid #999;
   padding: .5em;
   margin-bottom: .5em;
   border-radius: .5em;
+}
+
+div.messages span {
+  position: relative;
+  bottom: -15px;
+  left: -10px;
 }
 
 

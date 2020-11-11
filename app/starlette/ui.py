@@ -8,14 +8,12 @@ from ..messages import add_message
 from .templates import render
 
 
-
 async def homepage(request):
     data = await request.form()
     login_form = LoginForm(request, meta={ 'csrf_context': request.session })
     return render('home.html', {
         'login_form': login_form,
     })
-
 
 
 @requires('admin_auth', status_code=403)

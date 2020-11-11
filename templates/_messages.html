@@ -1,9 +1,23 @@
-    {% if request.session.messages %}
+{% if request.session.messages %}
+<section id="banner">
+  <div class="messages">
       {% for message in request.session.messages %}
       <div class="message">
       {{ message }}
       </div>
       {% endfor %}
     {{ request.clear_messages() }}
-    {% endif %}
+    <span id="message-closer"><img src="/static/icons/cancel-24px.svg" /></span>
+  </div>
+</section>
 
+<script>
+var closeMessages = function(event) {
+    const msgDiv = document.getElementById('banner');
+    msgDiv.style.display = 'none';
+};
+
+const closer = document.getElementById('message-closer');
+closer.onclick = closeMessages;
+</script>
+{% endif %}
