@@ -42,7 +42,10 @@ class User(base.ModelBase, base.DataModel):
         """All user objects are authenticated."""
         return True
 
-    def verify_password(self, password):
+    def verify_user_password(self, password):
+        print('input pw:', password)
+        print('hashed input', get_password_hash(password))
+        print('user hashed pw', self.hashed_password)
         return verify_password(password, self.hashed_password)
 
     def change_password(self, current_password, new_password):
@@ -97,9 +100,12 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
             db:Session = Closing[Provide[Container.closed_db]]) -> Optional[User]:
         """Return a user by email address if the provided password verifies."""
         user = cls.get_by_email(email, db=db)
+        print(user)
         if not user:
             return None
-        if not verify_password(password, user.hashed_password):
+        if not user.verify_user_password(password):
+            print(password)
+            print(user.hashed_password)
             return None
         return user
 

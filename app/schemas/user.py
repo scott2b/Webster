@@ -22,8 +22,10 @@ class UserCreate(BaseModel):
     email: EmailStr
     hashed_password: str
 
-class UserCreateRequest(UserCreate):
-    """Create user schema"""
+
+class UserCreateRequest(BaseModel):
+    """Create user schema. Don't inherit UserCreate or the hash_password validator
+    won't get the password!"""
     full_name: str
     email: EmailStr
     password: Optional[str]
@@ -33,9 +35,12 @@ class UserCreateRequest(UserCreate):
     @classmethod
     def hash_password(cls, v, values):
         """Hash the password"""
+        print('values in hash validator', values)
         if values.get('password'):
+            print('hashing password:', values['password'])
             return get_password_hash(values['password'])
         else:
+            print('creating a random password')
             return get_password_hash(create_random_key(AUTO_PASSWORD_BYTES))
 
 

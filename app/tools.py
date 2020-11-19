@@ -2,7 +2,7 @@ import click
 from . import orm, schemas
 from .orm.db import session_scope
 from .orm.user import User
-from fastapi.encoders import jsonable_encoder
+#from fastapi.encoders import jsonable_encoder
 
 from .containers import SessionLocal
 
@@ -19,7 +19,7 @@ def users():
 @click.argument('password')
 @click.option('--superuser', is_flag=True, default=False)
 def create_user(full_name, email, password, superuser):
-    user = schemas.UserCreate(
+    user = schemas.user.UserCreateRequest(
        full_name=full_name,
        email=email,
        password=password,
@@ -28,10 +28,11 @@ def create_user(full_name, email, password, superuser):
     session = SessionLocal()
     try:
         from .orm.user import users
-        users.create(session, obj_in=user)
+        users.create(obj_in=user, db=session)
     except:
         session.rollback()
         raise
+    session.commit()
 
 
 @click.command()
