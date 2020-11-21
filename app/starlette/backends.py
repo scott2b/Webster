@@ -1,6 +1,6 @@
 import datetime
 from starlette.authentication import AuthenticationBackend, AuthCredentials
-from ..orm.oauth2token import OAuth2Token
+from ..orm import oauth2token
 from ..orm.user import User
 
 
@@ -19,7 +19,7 @@ class SessionAuthBackend(AuthenticationBackend):
             if bearer[0] != 'Bearer':
                 return
             bearer = bearer[1]
-            token = OAuth2Token.objects.get_by_access_token(bearer)
+            token = oauth2token.OAuth2Token.objects.get_by_access_token(bearer)
             if token.revoked:
                 raise Exception
             if datetime.datetime.utcnow() > token.access_token_expires_at:

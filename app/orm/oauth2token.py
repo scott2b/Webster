@@ -10,7 +10,8 @@ from sqlalchemy.orm import relationship, Session
 from . import base
 from ..containers import Container
 from ..schemas.oauth2token import TokenCreateRequest, TokenRefreshRequest, OAuth2TokenCreate
-from .oauth2client import oauth2_clients, OAuth2Client
+from ..schemas import oauth2token
+from . import oauth2client
 from . import OAUTH2_ACCESS_TOKEN_MAX_CHARS, OAUTH2_REFRESH_TOKEN_MAX_CHARS
 
 
@@ -57,8 +58,8 @@ class OAuth2Token(base.ModelBase, base.DataModel):
 
     def get_user(self, db:Session=Closing[Provide[Container.closed_db]]):
         """Get the user associated with this token."""
-        return db.query(OAuth2Client).filter(
-            OAuth2Client.id == self.client_id).first().user
+        return db.query(oauth2client.OAuth2Client).filter(
+            oauth2client.OAuth2Client.id == self.client_id).first().user
 
 
 class OAuth2TokenManager():
@@ -81,7 +82,7 @@ class OAuth2TokenManager():
             OAuth2Token.refresh_token == refresh_token).one_or_none()
 
     @classmethod
-    def create(cls, obj_in:TokenCreateRequest, *,
+    def create(cls, obj_in:oauth2token.TokenCreateRequest, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> OAuth2Token:
         """
@@ -138,14 +139,14 @@ class OAuth2TokenManager():
         if not client:
             raise OAuth2Client.DoesNotExist
         if not client.compare_secret(obj_in.client_secret):
-            raise OAuth2Client.InvalidOAuth2Client
-        data = OAuth2TokenCreate(**obj_in.dict(), client=client)
+            raise oauth2client.OAuth2Client.InvalidOAuth2Client
+        data = oauth2token.OAuth2TokenCreate(**obj_in.dict(), client=client)
         token = OAuth2Token(**data.dict())
         db.add(token)
         return token
 
     @classmethod
-    def refresh(cls, obj_in:TokenRefreshRequest, *,
+    def refresh(cls, obj_in:oauth2token.TokenRefreshRequest, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> OAuth2Token:
         """

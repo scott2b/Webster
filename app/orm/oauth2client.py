@@ -10,10 +10,11 @@ from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy import UniqueConstraint
 from . import base
-from .user import User
+from . import user
 from ..containers import Container
 from ..schemas.oauth2client import OAuth2ClientCreate, OAuth2ClientUpdate
 from . import OAUTH2_CLIENT_ID_MAX_CHARS, OAUTH2_CLIENT_SECRET_MAX_CHARS
+
 
 
 class InvalidOAuth2Client(Exception):
@@ -71,7 +72,7 @@ class OAuth2ClientManager(
             OAuth2Client.client_id == client_id).one_or_none()
 
     @classmethod
-    def get_for_user(cls, user:User, client_id: str, *,
+    def get_for_user(cls, user:user.User, client_id: str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Client]:
         """Get an API client by client ID."""
@@ -82,14 +83,14 @@ class OAuth2ClientManager(
             OAuth2Client.user == user).one_or_none()
 
     @classmethod
-    def fetch_for_user(cls, user:User, *,
+    def fetch_for_user(cls, user:user.User, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> List[OAuth2Client]:
         """Get the API clients for the user."""
         return db.query(OAuth2Client).filter(OAuth2Client.user==user).all()
 
     @classmethod
-    def delete_for_user(cls, user:User, client_id:str, *,
+    def delete_for_user(cls, user:user.User, client_id:str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> bool:
         """Delete the specified API client."""
@@ -103,7 +104,7 @@ class OAuth2ClientManager(
             return False
 
     @classmethod
-    def exists(cls, user:User, name:str, *,
+    def exists(cls, user:user.User, name:str, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> bool:
         """Return True if a client with this name exists for the given user."""
@@ -115,3 +116,5 @@ class OAuth2ClientManager(
 
 oauth2_clients = OAuth2ClientManager(OAuth2Client)
 OAuth2Client.objects = oauth2_clients
+
+
