@@ -1,4 +1,5 @@
 from starlette.responses import RedirectResponse
+from starlette.routing import Route, Router
 from ..auth import verify_password_reset_token
 from ..forms import PasswordForm, LoginForm
 from ..messages import add_message
@@ -33,3 +34,12 @@ def password_reset(request):
     email = verify_password_reset_token(token)
     user = User.objects.get_by_email(email)
     form = PasswordForm()
+
+
+router = Router(
+    routes = [
+        Route('/login', login, methods=['GET', 'POST']),
+        Route('/logout', logout),
+        Route('/verify', password_reset, methods=['GET']),
+    ]
+)

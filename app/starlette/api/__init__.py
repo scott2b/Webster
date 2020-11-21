@@ -9,13 +9,14 @@ from sqlalchemy import exc
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException
 from starlette.responses import HTMLResponse, JSONResponse
-from starlette.routing import Route
+from starlette.routing import Route, Router
 from ...config import settings
 from ...orm.oauth2token import oauth2_tokens
 from ...orm.db import db_session, session_scope
 from dependency_injector.wiring import Closing
 from dependency_injector.wiring import Provide
 from ...containers import Container
+from ..templates import render
 
 
 class APIMessage(BaseModel):
@@ -42,31 +43,36 @@ exception_handlers = {
 }
 
 
-UI_ROUTES = {
-  'redoc': 'api',
-  # 'swagger': 'swagger' # Swagger not yet supported due to need to sort out
-                         # authentication and potentially csrf
-}
+#UI_ROUTES = {
+#  'redoc': 'api',
+#  # 'swagger': 'swagger' # Swagger not yet supported due to need to sort out
+#                         # authentication and potentially csrf
+#}
 
 class CustomPlugin(StarlettePlugin):
 
+
     def register_route(self, app):
+        """Use standard routing."""
         self.app = app
-        try:
-            self.app.add_route(
-                self.config.spec_url,
-                lambda request: JSONResponse(self.spectree.spec),
-            )
-        except: # some weirdness in the spectree library
-            pass
-        for ui in PAGES:
-            if ui in UI_ROUTES:
-                self.app.add_route(
-                    f'/{self.config.PATH}/{UI_ROUTES[ui]}',
-                    lambda request, ui=ui: HTMLResponse(
-                        PAGES[ui].format(self.config.spec_url)
-                    ),
-                )
+
+    #def _register_route(self, app):
+    #    self.app = app
+    #    try:
+    #        self.app.add_route(
+    #            self.config.spec_url,
+    #            lambda request: JSONResponse(self.spectree.spec),
+    #        )
+    #    except: # some weirdness in the spectree library
+    #        pass
+    #    for ui in PAGES:
+    #        if ui in UI_ROUTES:
+    #            self.app.add_route(
+    #                f'/{self.config.PATH}/{UI_ROUTES[ui]}',
+    #                lambda request, ui=ui: HTMLResponse(
+    #                    PAGES[ui].format(self.config.spec_url)
+    #                ),
+    #            )
 
 _app = SpecTree('starlette', path='docs', backend=CustomPlugin, MODE='strict')
 
@@ -125,26 +131,44 @@ class Cookie(BaseModel):
 from . import clients, tokens
 from .users import profile, password
 
-routes = [
-    #Route('/user', user_profile, methods=['POST']),
-    Route('/profile', profile, methods=['GET', 'PUT']),
-    Route('/password', password, methods=['PUT']),
-    # clients
-    Route('/clients/{client_id:str}', clients.clients_get, methods=['GET']),
-    Route('/clients/{client_id:str}', clients.clients_delete, methods=['DELETE']),
-    Route('/clients', clients.clients_list, methods=['GET']),
-    Route('/clients', clients.clients_post, methods=['POST']),
-    # tokens
-    Route('/token', tokens.token_create, methods=['POST']),
-    Route('/token-refresh', tokens.token_refresh, methods=['POST']),
-]
+
+PREFIX = '/v0.1'
+SPEC_URL = '/docs/openapi.json'
 
 
-def get_app():
-    app = Starlette(
-        debug=True,
-        routes=routes,
-        exception_handlers=exception_handlers,
-        on_startup=[])
-    _app.register(app)
-    return app
+def docs(request):
+    return render('redoc.html', { 'spec_url': PREFIX + SPEC_URL })
+
+
+router = Router(
+    routes = [
+        #Route('/user', user_profile, methods=['POST']),
+        Route('/profile', profile, methods=['GET', 'PUT']),
+        Route('/password', password, methods=['PUT']),
+        # clients
+        Route('/clients/{client_id:str}', clients.clients_get, methods=['GET']),
+        Route('/clients/{client_id:str}', clients.clients_delete, methods=['DELETE']),
+        Route('/clients', clients.clients_list, methods=['GET']),
+        Route('/clients', clients.clients_post, methods=['POST']),
+        # tokens
+        Route('/token', tokens.token_create, methods=['POST']),
+        Route('/token-refresh', tokens.token_refresh, methods=['POST']),
+        Route(SPEC_URL, lambda request:JSONResponse(_app.spec)),
+        Route('/docs/api', docs, methods=['GET']),
+        #Route('/docs/api', lambda request, ui='redoc': HTMLResponse(
+        #    PAGES['redoc'].format(PREFIX+SPEC_URL)))
+    ]
+)
+_app.register(router)
+
+#_webapp = None
+#def get_app():
+#    global _webapp
+#    if _webapp is None: 
+#        _webapp = Starlette(
+#            debug=True,
+#            routes=routes,
+#            exception_handlers=exception_handlers,
+#            on_startup=[])
+#        _app.register(_webapp)
+#    return _webapp

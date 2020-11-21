@@ -1,6 +1,7 @@
 from starlette.authentication import requires
 from starlette.exceptions import HTTPException
 from starlette.responses import RedirectResponse
+from starlette.routing import Route, Router
 from ..orm.oauth2client import OAuth2Client, OAuth2ClientCreate
 from ..orm.user import User
 from ..forms import UserForm, PasswordForm, LoginForm, APIClientForm
@@ -60,3 +61,12 @@ async def update_user(request):
         'user_form': user_form,
         'password_form': password_form
     })
+
+
+router = Router(
+    routes = [
+        Route('/me', update_user, methods=['GET', 'POST']),
+        Route('/{user_id:int}', update_user, methods=['GET', 'POST']),
+        Route('/', users, methods=['GET']),
+    ]
+)

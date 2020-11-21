@@ -63,3 +63,4 @@ def verify_password_reset_token(token: str) -> Optional[str]:
         return decoded_token["sub"]
     except jwt.JWTError:
         return None
+
