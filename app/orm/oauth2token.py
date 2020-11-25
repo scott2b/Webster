@@ -135,7 +135,7 @@ class OAuth2TokenManager():
             * error_description (ascii only - a sentence or 2)
             * error_uri - link, e.g. to api docs
         """
-        client = oauth2_clients.get_by_client_id(obj_in.client_id, db=db)
+        client = oauth2client.oauth2_clients.get_by_client_id(obj_in.client_id, db=db)
         if not client:
             raise OAuth2Client.DoesNotExist
         if not client.compare_secret(obj_in.client_secret):
