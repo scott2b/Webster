@@ -137,7 +137,7 @@ class OAuth2TokenManager():
         """
         client = oauth2client.oauth2_clients.get_by_client_id(obj_in.client_id, db=db)
         if not client:
-            raise OAuth2Client.DoesNotExist
+            raise oauth2client.OAuth2Client.DoesNotExist
         if not client.compare_secret(obj_in.client_secret):
             raise oauth2client.OAuth2Client.InvalidOAuth2Client
         data = oauth2token.OAuth2TokenCreate(**obj_in.dict(), client=client)

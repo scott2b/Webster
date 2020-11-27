@@ -1,4 +1,5 @@
 from spectree import Response
+from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 from ...config import settings
 from ...orm.oauth2client import OAuth2Client
