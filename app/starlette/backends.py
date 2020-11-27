@@ -20,9 +20,10 @@ class SessionAuthBackend(AuthenticationBackend):
                 return
             bearer = bearer[1]
             token = oauth2token.OAuth2Token.objects.get_by_access_token(bearer)
-            if token.revoked:
-                raise Exception
+            if token is None or token.revoked:
+                return # return without authorization
             if datetime.datetime.utcnow() > token.access_token_expires_at:
-                raise Exception
+                return # return without authorization
+            # passed all tests
             request.scope['token'] = token
             return AuthCredentials(['api_auth']), None
