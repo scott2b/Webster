@@ -77,7 +77,7 @@ class PasswordForm(CSRFForm):
         super().__init__(*args, **kwargs)
 
     def validate_current_password(form, field):
-        if not form.user.verify_password(field.data):
+        if not form.user.verify_user_password(field.data):
             raise validators.ValidationError('Incorrect password')
 
     def validate_retype_password(form, field):

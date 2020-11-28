@@ -154,7 +154,7 @@ router = Router(
         Route('/token', tokens.token_create, methods=['POST']),
         Route('/token-refresh', tokens.token_refresh, methods=['POST']),
         Route(SPEC_URL, lambda request:JSONResponse(_app.spec)),
-        Route('/docs/api', docs, methods=['GET']),
+        Route('/docs/api', docs, name='api_docs', methods=['GET']),
         #Route('/docs/api', lambda request, ui='redoc': HTMLResponse(
         #    PAGES['redoc'].format(PREFIX+SPEC_URL)))
     ]

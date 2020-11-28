@@ -3,7 +3,7 @@
     {% if request.user.is_authenticated %}
     | <a href="/users/me">Profile</a>
     | <a href="/apps">Apps</a>
-    | <a href="/docs/api" target="api_docs">API docs</a>
+    | <a href="{{request.url_for('api_docs')}}" target="api_docs">API docs</a>
     | <a href="/auth/logout">Sign out</a>
     {% else %}
     | <a href="/auth/login">Sign in</a>
