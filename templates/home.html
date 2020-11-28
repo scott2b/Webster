@@ -17,7 +17,7 @@
 
 
   <div class="header">
-    <h1>Starlight</h1>
+    <h1>{{ project_name }}</h1>
     {% if request.user.is_authenticated %}
     <p>Hello, {{ request.user.full_name }}</p>
     {% else %}

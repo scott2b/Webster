@@ -2,6 +2,7 @@ from starlette.authentication import requires
 from starlette.exceptions import HTTPException
 from starlette.responses import RedirectResponse
 from starlette.routing import Route, Router
+from ..config import settings
 from ..orm.oauth2client import OAuth2Client, OAuth2ClientCreate
 from ..orm.user import User
 from ..forms import UserForm, PasswordForm, LoginForm, APIClientForm
@@ -13,6 +14,7 @@ async def homepage(request):
     data = await request.form()
     login_form = LoginForm(request, meta={ 'csrf_context': request.session })
     return render('home.html', {
+        'project_name': settings.PROJECT_NAME,
         'login_form': login_form,
     })
 
