@@ -55,7 +55,7 @@ async def update_user(request):
                 password_form.current_password.data,
                 password_form.new_password.data)
             if valid:
-                add_message(request, 'Password changed')
+                add_message(request, 'Password changed', classes=['info'])
         if valid:
             return RedirectResponse(url=request.url.path, status_code=302)
     return render('user.html', {

@@ -10,6 +10,7 @@ Usage:
   * call clear_messages in the template after rendering out the current session
     messages
 """
+from typing import List
 
 
 def clear_messages(request):
@@ -20,9 +21,12 @@ def clear_messages(request):
     return ''
 
 
-def add_message(request, message):
+def add_message(request, message, classes:List[str]=None):
     """Add a message to the session messages list."""
     if not 'messages' in request.session:
         request.session['messages'] = []
-    request.session['messages'].append(message)
+    msg = { 'text': message }
+    if classes:
+        msg['class'] = ' '.join(classes)
+    request.session['messages'].append(msg)
 

@@ -2,8 +2,8 @@
 <section id="banner">
   <div class="messages">
       {% for message in request.session.messages %}
-      <div class="message">
-      {{ message }}
+      <div class="message {{ message.class }}">
+      {{ message.text }}
       </div>
       {% endfor %}
     {{ request.clear_messages() }}

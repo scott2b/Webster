@@ -13,7 +13,11 @@ async def client_apps(request):
     if request.method == 'POST' and 'delete' in data:
         OAuth2Client.objects.delete_for_user(request.user,
             client_id=data['client_id'])
-        add_message(request, f'Deleted app with client ID: {data["client_id"]}')
+        add_message(
+            request,
+            f'Deleted app with client ID: {data["client_id"]}',
+            classes=['info']
+        )
         next = request.query_params.get('next', '/apps')
         return RedirectResponse(url=request.url.path, status_code=302)
     if request.method == 'POST' and form.validate():

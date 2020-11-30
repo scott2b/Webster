@@ -14,7 +14,10 @@ async def login(request):
         if user:
             request.session['username'] = user.email
             request.session['user_id'] = user.id
-            add_message(request, f'You are now logged in as: {user.full_name}')
+            add_message(
+                request,
+                f'You are now logged in as: {user.full_name}',
+                classes=['info'])
             next = request.query_params.get('next', '/')
             return RedirectResponse(url=next, status_code=302)
     return render('login.html', {
@@ -24,7 +27,7 @@ async def login(request):
 
 def logout(request):
     del request.session['user_id']
-    add_message(request, 'You are now logged out.')
+    add_message(request, 'You are now logged out.', classes=['info'])
     return RedirectResponse(url='/')
 
 
