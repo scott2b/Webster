@@ -18,6 +18,7 @@ from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from dependency_injector.wiring import Provide, Closing
 import pydantic
 from ..containers import Container
+import sqlite3
 
 
 ModelBase = declarative_base()
@@ -132,10 +133,10 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         try:
             db.add(db_obj)
             db.commit()
-            return db_obj
         except exc.IntegrityError as e:
             db.rollback()
             raise self.model.Exists from e
+        return db_obj
 
     def update(
             self, *,

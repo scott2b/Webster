@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+	<title>{{ title }}</title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+{% include "_messages.html" %}
+
+<section id="page">
+
+  <div class="left-sidebar"></div>
+  <div class="right-sidebar"></div>
+
+  {% include "_nav.html" %}
+
+  {% block content %}
+  {% endblock content %}
+
+</section>
+
+</body>
+</html>
+

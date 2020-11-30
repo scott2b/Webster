@@ -4,10 +4,13 @@ from typing import Optional
 from dependency_injector.wiring import Closing, Provide
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 from . import base
 from ..auth import get_password_hash, verify_password
 from ..schemas.user import UserCreate, UserUpdateRequest, UserProfileResponse
 from ..containers import Container
+
+import sqlite3
 
 
 
@@ -76,8 +79,13 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
         #    is_superuser=obj_in.is_superuser,
         #)
 
-        db_obj = User(**UserCreate(**obj_in.dict()).dict())
-        db.add(db_obj)
+        try:
+            db_obj = User(**UserCreate(**obj_in.dict()).dict())
+            db.add(db_obj)
+            db.commit()
+        except exc.IntegrityError as e:
+            db.rollback()
+            raise self.model.Exists from e
         return db_obj
 
     #def update(self, *,

@@ -1,21 +1,6 @@
-<!doctype html>
-<html>
-<head>
-	<title>Home</title>
-    <link href="/static/site.css" rel="stylesheet">
-</head>
-<body>
+{% extends "base.html" %}
 
-{% include "_messages.html" %}
-
-<section id="page">
-
-  <div class="left-sidebar"></div>
-  <div class="right-sidebar"></div>
-
-  {% include "_nav.html" %}
-
-
+{% block content %}
   <div class="header">
     <h1>{{ project_name }}</h1>
     {% if request.user.is_authenticated %}
@@ -48,8 +33,4 @@
     {% endif %}
   </div>
 
-</section>
-
-</body>
-</html>
-
+{% endblock content %}

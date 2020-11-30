@@ -1,22 +1,18 @@
-<!doctype html>
-<html>
-<head>
-	<title>Home</title>
-    <link href="/static/site.css" rel="stylesheet">
-</head>
-<body>
+{% extends "base.html" %}
 
-{% include "_messages.html" %}
+{% block content %}
 
-<section id="page">
   <div>
-    <h2>Admin</h2>
+    <h3>Create a user</h3>
+      {% with action='.' %}
+        {% include "_user.html" %}
+      {% endwith %}
     <h3>Users</h3>
     {% for user in users %}
         <div>
-        <a href="/users/{{ user.id }}">Edit</a> {{ user.id }} {{ user.email }}: {{ user.full_name }}
+        <a href="/admin/users/{{ user.id }}">Edit</a> {{ user.id }} {{ user.email }}: {{ user.full_name }}
         </div>
     {% endfor %}
   </div>
-</section>
-</body>
+
+{% endblock content %}

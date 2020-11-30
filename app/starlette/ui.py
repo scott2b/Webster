@@ -7,6 +7,7 @@ from ..orm.oauth2client import OAuth2Client, OAuth2ClientCreate
 from ..orm.user import User
 from ..forms import UserForm, PasswordForm, LoginForm, APIClientForm
 from ..messages import add_message
+from ..schemas.user import UserCreateRequest
 from .templates import render
 
 
@@ -21,8 +22,17 @@ async def homepage(request):
 
 @requires('admin_auth', status_code=403)
 async def users(request):
+    data = await request.form()
+    form = UserForm(request, formdata=data, meta={ 'csrf_context': request.session })
+    if request.method == 'POST' and form.validate():
+        try:
+            user = User.objects.create(UserCreateRequest(**form.data))
+            return RedirectResponse(url=f'/admin/users/{user.id}', status_code=302)
+        except User.Exists:
+            form.email.errors = ['A user with that email address already exists']
     users = User.objects.fetch()
     return render('user-list.html', {
+        'form': form,
         'users': users
     })
 
@@ -69,6 +79,6 @@ router = Router(
     routes = [
         Route('/me', update_user, methods=['GET', 'POST']),
         Route('/{user_id:int}', update_user, methods=['GET', 'POST']),
-        Route('/', users, methods=['GET']),
+        Route('/', users, methods=['GET', 'POST']),
     ]
 )
