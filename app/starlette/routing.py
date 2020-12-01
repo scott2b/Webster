@@ -43,6 +43,7 @@ routes = [
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('/auth', app=auth.router),
     Route('/users/me', ui.update_user, methods=['GET', 'POST']),
+    Route('/users/reset-password', ui.reset_password, methods=['GET', 'POST']),
     Mount('/admin/users', app=ui.router),
     Route('/admin', admin.admin, methods=['GET', 'POST']),
     Mount('/v0.1', app=api.router),

@@ -1,5 +1,5 @@
 from datetime import timedelta
-from wtforms import Form, BooleanField, StringField, validators, PasswordField
+from wtforms import Form, BooleanField, StringField, validators, PasswordField, HiddenField
 from wtforms.csrf.session import SessionCSRF
 from .config import settings
 from .orm.oauth2client import OAuth2Client
@@ -65,6 +65,16 @@ def UserForm(request, *args, **kwargs):
         return AdminUserForm(request, *args, **kwargs)
     else:
         return PublicUserForm(request, *args, **kwargs)
+
+
+class PasswordResetForm(CSRFForm):
+    token = HiddenField()
+    new_password = PasswordField('New password')
+    retype_password = PasswordField('Retype new password')
+        
+    def validate_retype_password(form, field):
+        if field.data != form.new_password.data:
+            raise validators.ValidationError('Passwords must match')
 
 
 class PasswordForm(CSRFForm):

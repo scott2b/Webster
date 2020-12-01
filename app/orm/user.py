@@ -59,6 +59,11 @@ class User(base.ModelBase, base.DataModel):
         else:
             return False
 
+    def set_password(self, password):
+        self.hashed_password = get_password_hash(password)
+        self.save()
+
+
 class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
     """User object manager."""
 

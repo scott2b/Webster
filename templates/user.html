@@ -49,6 +49,14 @@
         <input type="submit" name="user-info" value="Update"/>
     </form>
 
+    {% if request.user.is_superuser %}
+    <hr/>
+    <h3>Password reset</h3>
+    <form method="POST" action="{{ action }}">
+        <input type="submit" name="password-reset" value="Reset password" />
+    </form>
+    {% endif %}
+
     <hr/>
     <h3>Password change</h3>
     <form method="POST" action="{{ action }}">
