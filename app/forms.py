@@ -57,6 +57,7 @@ class PublicUserForm(CSRFForm):
 
 class AdminUserForm(PublicUserForm):
     is_superuser = BooleanField('Superuser')
+    is_active = BooleanField('Active')
 
 
 def UserForm(request, *args, **kwargs):
