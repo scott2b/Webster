@@ -1,21 +1,12 @@
-<!doctype html>
-<html>
-<head>
-	<title>Update user profile</title>
-    <link href="/static/site.css" rel="stylesheet">
-</head>
-<body>
+{% extends "base.html" %}
 
-{% include "_messages.html" %}
+{% block content %}
 
-<section id="page">
+  <div>
+    <a href="/admin">Admin</a> &raquo; <a href="/admin/users">Users</a> &raquo; <span>{{ user.id }}</span>
+  </div>
 
-  <div class="left-sidebar"></div>
-  <div class="right-sidebar"></div>
-
-  {% include "_nav.html" %}
-
-  <div class="console">
+  <div>
     <h2>User Profile</h2>
     <h3>{{ user.full_name }}</h3>
     <p>{{ user.email }}</p>
@@ -87,5 +78,5 @@
     </form>
 
   </div>
-</section>
-</body>
+
+{% endblock content %}
