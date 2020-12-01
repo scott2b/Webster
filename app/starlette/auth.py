@@ -1,8 +1,9 @@
 from starlette.responses import RedirectResponse
 from starlette.routing import Route, Router
 from ..auth import verify_password_reset_token
-from ..forms import PasswordForm, LoginForm
+from ..forms import LoginForm, PasswordResetForm
 from ..messages import add_message
+from ..orm.user import User
 from .templates import render
 
 
@@ -31,18 +32,31 @@ def logout(request):
     return RedirectResponse(url='/')
 
 
-# TODO
-def password_reset(request):
-    token = request.query_params['key']
-    email = verify_password_reset_token(token)
-    user = User.objects.get_by_email(email)
-    form = PasswordForm()
+async def reset_password(request):
+    data = await request.form()
+    form = PasswordResetForm(formdata=data, meta={ 'csrf_context': request.session })
+    if request.method == 'GET':
+        token = request.query_params['token'] 
+        form.token.data = token
+    email = verify_password_reset_token(form.token.data)
+    if request.method == 'POST' and form.validate():
+        user = User.objects.get_by_email(email)
+        user.set_password(form.new_password.data)
+        add_message(request,
+            'You may now sign in with your new password.',
+            classes=['info']
+        )
+        return RedirectResponse(url='/auth/login', status_code=302)
+    return render('password-reset.html', {
+        'email': email,
+        'form': form 
+    })
 
 
 router = Router(
     routes = [
         Route('/login', login, methods=['GET', 'POST']),
         Route('/logout', logout),
-        Route('/verify', password_reset, methods=['GET']),
+        Route('/reset-password', reset_password, methods=['GET', 'POST']),
     ]
 )

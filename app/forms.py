@@ -67,6 +67,15 @@ def UserForm(request, *args, **kwargs):
         return PublicUserForm(request, *args, **kwargs)
 
 
+class AdminPasswordForm(CSRFForm):
+    new_password = PasswordField('New password')
+    retype_password = PasswordField('Retype new password')
+
+    def validate_retype_password(form, field):
+        if field.data != form.new_password.data:
+            raise validators.ValidationError('Passwords must match')
+
+
 class PasswordResetForm(CSRFForm):
     token = HiddenField()
     new_password = PasswordField('New password')
