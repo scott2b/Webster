@@ -21,6 +21,8 @@ class UserCreate(BaseModel):
     full_name: str
     email: EmailStr
     hashed_password: str
+    is_active: bool
+    is_superuser: bool
 
 
 class UserCreateRequest(BaseModel):
@@ -30,6 +32,8 @@ class UserCreateRequest(BaseModel):
     email: EmailStr
     password: Optional[str]
     hashed_password: Optional[str]
+    is_active: bool
+    is_superuser: bool
 
     @validator('hashed_password', always=True)
     @classmethod

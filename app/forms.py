@@ -68,6 +68,11 @@ def UserForm(request, *args, **kwargs):
         return PublicUserForm(request, *args, **kwargs)
 
 
+class UserDeleteForm(CSRFForm):
+    email = StringField("Type user's email address to delete user",
+        [validators.Email()])
+
+
 class AdminPasswordForm(CSRFForm):
     new_password = PasswordField('New password')
     retype_password = PasswordField('Retype new password')

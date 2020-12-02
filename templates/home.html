@@ -19,16 +19,17 @@
             <h3>User profile</h3>
             <p><strong>{{ request.user.full_name }}</strong></p>
             <p><strong>{{ request.user.email }}</strong></p>
-            <p><a href="/users/me">Edit</a> | <a href="/auth/logout">Logout</a></p>
+            <p><a href="/profile">Edit</a> | <a href="/auth/logout">Logout</a></p>
         </div>
     {% else %}
     <h2>Login</h2>
       <div>
-      {% with form=login_form %}
-        {% with action='/auth/login?next=/' %}
-          {% include "_login.html" %}
+      <form method="POST" action="/auth/login?next=/">
+        {% with form=login_form %}
+          {% include "forms/login.html" %}
         {% endwith %}
-      {% endwith %}
+        <input type="submit" value="login" name="login-form"/>
+      </form>
       </div>
     {% endif %}
   </div>

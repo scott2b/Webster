@@ -20,38 +20,16 @@
     <h3>{{ user.full_name }}</h3>
     <p>{{ user.email }}</p>
 
-    <form method="POST" action="{{ action }}">
-        {{ user_form.csrf_token }}
-
-        <p>
-        {{ user_form.full_name.label }} {{ user_form.full_name(class="css_class") }}
-        {% if user_form.full_name.errors %}
-            <ul class="errors">{% for error in user_form.full_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-        {% endif %}
-        </p>
-
-        <p>
-        {{ user_form.email.label }} {{ user_form.email(class="css_class") }}
-        {% if user_form.email.errors %}
-            <ul class="errors">{% for error in user_form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-        {% endif %}
-        </p>
-
-        {% if request.user.is_superuser %}
-        <p>
-        {{ user_form.is_superuser.label }} {{ user_form.is_superuser(class="css_class") }}
-        {% if user_form.is_superuser.errors %}
-            <ul class="errors">{% for error in user_form.is_superuser.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-        {% endif %}
-        </p>
-        {% endif %}
-
+    <form method="POST" action="{{ request.url_for('user_profile') }}">
+        {% with form=user_form %}
+            {% include "forms/user.html" %}
+        {% endwith %}
         <input type="submit" name="user-info" value="Update"/>
     </form>
 
     <hr/>
     <h3>Password change</h3>
-    <form method="POST" action="{{ action }}">
+    <form method="POST" action="{{ request.url_for('user_profile') }}">
       {{ password_form.csrf_token }}
       <p>
       {{ password_form.current_password.label }} {{ password_form.current_password(class="css_class") }}

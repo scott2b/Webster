@@ -19,11 +19,11 @@ from . import user, auth, api, oauth2, admin
 
 routes = [
     Route('/', user.homepage, methods=['GET', 'POST']),
-    Route('/apps', oauth2.client_apps, methods=['GET', 'POST']),
+    Route('/apps', oauth2.client_apps, name='apps', methods=['GET', 'POST']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('/auth', app=auth.router),
-    Route('/profile', user.profile, methods=['GET', 'POST']),
-    Mount('/admin', admin.router),
+    Route('/profile', user.profile, name='user_profile', methods=['GET', 'POST']),
+    Mount('/admin', admin.router, name='admin'),
     Mount('/v0.1', app=api.router),
 ]
 

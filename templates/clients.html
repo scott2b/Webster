@@ -29,9 +29,12 @@
   <div class="api">
     <h3>API client apps</h3>
     <h4>Create a new API client</h4>
-    {% with action='/apps' %}
-        {% include "_client.html" %}
-    {% endwith %}
+    <form method="POST" action="{{ request.url_for('apps') }}">
+      {% with form=form %}
+        {% include "forms/client.html" %}
+      {% endwith %}
+        <input type="submit" value="Create" name="client-create" />
+    </form>
     <h4>API client applications</h4>
     {% for client in api_clients %}
         <div class="client-app">

@@ -7,14 +7,19 @@
   </div>
 
   <div>
+
     <h3>Create a user</h3>
+    <form method="POST" action="{{ request.url_for('admin:users') }}">
       {% with action='.' %}
-        {% include "_user.html" %}
+        {% include "forms/user.html" %}
       {% endwith %}
+      <input type="submit" value="Create" name="user-create" />
+    </form>
+
     <h3>Users</h3>
     {% for user in users %}
         <div>
-        <a href="/admin/users/{{ user.id }}">Edit</a> {{ user.id }} {{ user.email }}: {{ user.full_name }}
+        <a href="/admin/users/{{ user.id }}">Edit</a> {{ user.id }} {% if user.is_active %}y{% else %}n{% endif %} {{ user.email }}: {{ user.full_name }}
         </div>
     {% endfor %}
   </div>

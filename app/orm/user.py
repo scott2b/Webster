@@ -86,6 +86,7 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
 
         try:
             db_obj = User(**UserCreate(**obj_in.dict()).dict())
+            #db_obj = User(**obj_in.dict())
             db.add(db_obj)
             db.commit()
         except exc.IntegrityError as e:

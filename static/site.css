@@ -124,6 +124,7 @@ input[type=text] {
   width: 70%;
 }
 
+
 ul.errors {
   list-style: none;
   color: var(--error);

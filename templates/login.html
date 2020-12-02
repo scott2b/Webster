@@ -18,7 +18,12 @@
 
 
   <div class="api">
-  {% include "_login.html" %}
+      <form method="POST" action="/auth/login?next=/">
+        {% with form=form %}
+          {% include "forms/login.html" %}
+        {% endwith %}
+        <input type="submit" value="login" name="login-form"/>
+      </form>
   </div>
 </section>
 
