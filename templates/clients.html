@@ -1,20 +1,6 @@
-<!doctype html>
-<html>
-<head>
-	<title>Home</title>
-    <link href="/static/site.css" rel="stylesheet">
-</head>
-<body>
+{% extends "base.html" %}
 
-{% include "_messages.html" %}
-
-<section id="page">
-
-  <div class="left-sidebar"></div>
-  <div class="right-sidebar"></div>
-
-  {% include "_nav.html" %}
-
+{% block content %}
   <style>
     .api-key {
       font-size: 80%;
@@ -27,15 +13,15 @@
   </style>
 
   <div class="api">
-    <h3>API client apps</h3>
-    <h4>Create a new API client</h4>
+    <h1>API client apps</h1>
+    <h2>Create a new API client</h2>
     <form method="POST" action="{{ request.url_for('apps') }}">
       {% with form=form %}
         {% include "forms/client.html" %}
       {% endwith %}
         <input type="submit" value="Create" name="client-create" />
     </form>
-    <h4>API client applications</h4>
+    <h2>API client applications</h2>
     {% for client in api_clients %}
         <div class="client-app">
         <p><strong>NAME:</strong> {{ client.name }}</p>
@@ -49,8 +35,5 @@
         </div>
     {% endfor %}
   </div>
-<section>
 
-</body>
-
-</html>
+{% endblock content %}

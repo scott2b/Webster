@@ -105,6 +105,6 @@ router = Router(
     routes = [
         Route('/users/{user_id:int}', admin_user, name='user', methods=['GET', 'POST']),
         Route('/users', admin_users, name='users', methods=['GET', 'POST']),
-        Route('/', admin, methods=['GET']),
+        Route('/', admin, name='home', methods=['GET']),
     ]
 )

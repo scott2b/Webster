@@ -18,10 +18,10 @@ from starlette.staticfiles import StaticFiles
 from . import user, auth, api, oauth2, admin
 
 routes = [
-    Route('/', user.homepage, methods=['GET', 'POST']),
+    Route('/', user.homepage, name='home', methods=['GET', 'POST']),
     Route('/apps', oauth2.client_apps, name='apps', methods=['GET', 'POST']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
-    Mount('/auth', app=auth.router),
+    Mount('/auth', app=auth.router, name='auth'),
     Route('/profile', user.profile, name='user_profile', methods=['GET', 'POST']),
     Mount('/admin', admin.router, name='admin'),
     Mount('/v0.1', app=api.router),

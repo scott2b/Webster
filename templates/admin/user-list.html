@@ -17,11 +17,22 @@
     </form>
 
     <h3>Users</h3>
+    <table>
+      <th>ID</th><th>Active</th><th>Admin</th><th>email</th><th>name</th>
     {% for user in users %}
-        <div>
-        <a href="/admin/users/{{ user.id }}">Edit</a> {{ user.id }} {% if user.is_active %}y{% else %}n{% endif %} {{ user.email }}: {{ user.full_name }}
-        </div>
+      <tr>
+      </tr>
+      <tr>
+        {% with link=request.url_for('admin:user', user_id=user.id) %}
+        <td><a href="{{ link }}">{{ user.id }}</a></td>
+        <td>{% if user.is_active %}<span class="check"></span>{% endif %}</td>
+        <td>{% if user.is_superuser %}<span class="check"></span>{% endif %}</td>
+        <td><a href="{{ link }}">{{ user.email }}</a></td>
+        <td><a href="{{ link }}">{{ user.full_name }}</a></td>
+        {% endwith %}
+      </tr>
     {% endfor %}
+    </table>
   </div>
 
 {% endblock content %}

@@ -51,8 +51,8 @@ async def reset_password(request):
 
 router = Router(
     routes = [
-        Route('/login', login, methods=['GET', 'POST']),
-        Route('/logout', logout),
-        Route('/reset-password', reset_password, methods=['GET', 'POST']),
+        Route('/login', login, name='login', methods=['GET', 'POST']),
+        Route('/logout', logout, name='logout'),
+        Route('/reset-password', reset_password, name='password_reset', methods=['GET', 'POST']),
     ]
 )
