@@ -8,20 +8,25 @@
     {% else %}
     <p>Please sign in</p>
     {% endif %}
+    {% if request.user.is_authenticated %}
     <div>
-      <a href="/docs/api" target="api_docs">API Docs</a>
+      <a href="{{ request.url_for('apps') }}">API client apps</a>
     </div>
+    {% endif %}
+    <div>
+      <a href="{{ request.url_for('docs') }}">User documentation</a>
+    </div>
+    <div>
+      <a href="/docs/api" target="api_docs">API reference</a>
+    </div>
+    {% if request.user.is_authenticated %}
+    <div>
+      <a href="{{ request.url_for('profile') }}">User profile</a>
+    </div>
+    {% endif %}
   </div>
 
-  <div class="profile">
-    {% if request.user.is_authenticated %}
-        <div>
-            <h3>User profile</h3>
-            <p><strong>{{ request.user.full_name }}</strong></p>
-            <p><strong>{{ request.user.email }}</strong></p>
-            <p><a href="/profile">Edit</a> | <a href="/auth/logout">Logout</a></p>
-        </div>
-    {% else %}
+    {% if not request.user.is_authenticated %}
     <h2>Login</h2>
       <div>
       <form method="POST" action="/auth/login?next=/">
