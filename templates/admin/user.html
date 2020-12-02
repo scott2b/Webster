@@ -8,9 +8,16 @@
 
   <div>
     <h2>User Profile</h2>
-    <h3>{{ user.full_name }}</h3>
-    <p>{{ user.email }}</p>
+    <p><strong>{{ user.full_name }}</strong> {{ user.email }}</p>
 
+    {% if request.session.messages__user_info %}
+      <ul>
+        {% for msg in request.session.messages__user_info %}
+            <li>{{ msg.text }}</li>
+        {% endfor %}
+      </ul>
+      {{ request.clear_messages('user_info') }}
+    {% endif %}
     <form method="POST" action="{{ request.url_for('admin:user', user_id=user.id) }}">
       {% with form=user_form %}
         {% include "forms/user.html" %}

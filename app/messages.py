@@ -13,20 +13,28 @@ Usage:
 from typing import List
 
 
-def clear_messages(request):
+def clear_messages(request, key=None):
     """Call from a template after rendering messages to clear out the current
     message list.
     """
-    request.session['messages']= []
+    if key:
+        key = f'messages__{key}'
+    else:
+        key = 'messages'
+    request.session[key]= []
     return ''
 
 
-def add_message(request, message, classes:List[str]=None):
+def add_message(request, message, key:str=None, classes:List[str]=None):
     """Add a message to the session messages list."""
-    if not 'messages' in request.session:
-        request.session['messages'] = []
+    if key:
+        key = f'messages__{key}'
+    else:
+        key = 'messages'
+    if not key in request.session:
+        request.session[key] = []
     msg = { 'text': message }
     if classes:
         msg['class'] = ' '.join(classes)
-    request.session['messages'].append(msg)
+    request.session[key].append(msg)
 

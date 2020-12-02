@@ -54,7 +54,7 @@ async def admin_user(request):
             if valid:
                 user_form.populate_obj(user) 
                 user.save()
-                add_message(request, f'User updated')
+                add_message(request, f'User updated', key='user_info')
         elif 'password-reset' in data:
             reset_token = generate_password_reset_token(user.email)
             reset_link = f'http://localhost:8000/auth/reset-password?token={reset_token}'
