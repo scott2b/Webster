@@ -1,16 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <style>
-    .api-key {
-      font-size: 80%;
-      color: #999;
-    }
-    .api-secret {
-      font-size: 80%;
-      color: #999;
-    }
-  </style>
 
   <div class="api">
     <h1>API client apps</h1>
@@ -22,9 +12,10 @@
         <input type="submit" value="Create" name="client-create" />
     </form>
     <h2>API client applications</h2>
+
     {% for client in api_clients %}
-        <div class="client-app">
-        <p><strong>NAME:</strong> {{ client.name }}</p>
+      <div class="client-app">
+        <h3>{{ client.name }}</h3>
         <p><strong>ID:</strong> <span class="api-key">{{ client.client_id }}</span></p>
         <p><strong>SECRET:</strong> <span class="api-secret">{{ client.client_secret }}</span></p>
         <form action="/apps" method="POST">
@@ -32,8 +23,9 @@
             <input type="hidden" name="client_id" value="{{client.client_id}}" />
             <input type="submit" value="Delete" />
         </form>
-        </div>
+      </div>
     {% endfor %}
+
   </div>
 
 {% endblock content %}

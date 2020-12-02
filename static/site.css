@@ -38,6 +38,24 @@ h3 {
   text-align: left;
 }
 
+div.client-app h3 {
+  margin: -10px;
+  background: var(--secondary); 
+  border-radius: 10px 10px 0 0;
+  padding: 5px 10px;
+}
+
+div.client-app p{
+  font-size: 80%;
+}
+
+.api-key {
+  color: #999;
+}
+.api-secret {
+  color: #999;
+}
+
 div.nav ul {
   list-style: none;
   margin-left: 0;
@@ -170,8 +188,8 @@ input {
 
 .client-app {
   border: 1px solid #666;
-  border-radius: .5em;
-  padding: .5em;
+  border-radius: 10px;
+  padding: 10px;
   margin-bottom: .5em;
 }
 
