@@ -15,11 +15,12 @@ a decorator for db session management and only injecting into the decorator
 """
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
-from . import user, auth, api, oauth2, admin
+from . import user, auth, api, oauth2, admin, docs
 
 routes = [
     Route('/', user.homepage, name='home', methods=['GET', 'POST']),
     Route('/apps', oauth2.client_apps, name='apps', methods=['GET', 'POST']),
+    Route('/docs/userdoc', docs.docs, name='docs', methods=['GET']),
     Mount('/static', StaticFiles(directory="static"), name='static'),
     Mount('/auth', app=auth.router, name='auth'),
     Route('/profile', user.profile, name='user_profile', methods=['GET', 'POST']),
