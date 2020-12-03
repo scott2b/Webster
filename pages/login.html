@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+
+
+<section id="page">
+
+  <div class="left-sidebar"></div>
+  <div class="right-sidebar"></div>
+
+    <div class="nav">
+    <ul>
+    <li class="active"><a href="http://localhost:8000/">Home</a></li>
+
+    
+        <li><a href="http://localhost:8000/docs/userdoc">Docs</a></li>
+        <li><a href="http://localhost:8000/v0.1/docs/api" target="api_docs">API</a></li>
+
+    
+        <li ><a href="/auth/login">Sign in</a></li>
+    
+
+    
+     </ul>
+  </div>
+
+  <div class="content">
+  
+  <div class="header">
+    <h1>(localhost) socialcontext.ai</h1>
+    
+    <p>Please sign in</p>
+    
+
+    
+
+    <h2><a href="http://localhost:8000/docs/userdoc">User documentation</a></h2>
+    <h2><a href="/docs/api" target="api_docs">API reference</a></h2>
+
+  </div>
+
+    
+    <h2>Login</h2>
+      <div>
+      <form method="POST" action="/auth/login?next=/">
+        
+              <input id="csrf_token" name="csrf_token" type="hidden" value="20201203155004##d1fc56607ba6062850a520889b1b74b7aace70bc">
+    <label for="email">Email address</label> <input class="css_class" id="email" name="email" type="text" value="">
+    
+
+    <label for="password">Password</label> <input id="password" name="password" type="password" value="">
+    
+        
+        <input type="submit" value="login" name="login-form"/>
+      </form>
+      </div>
+    
+  </div>
+
+
+  </div>
+
+</section>
+
+</body>
+</html>

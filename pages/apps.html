@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+
+
+<section id="page">
+
+  <div class="left-sidebar"></div>
+  <div class="right-sidebar"></div>
+
+    <div class="nav">
+    <ul>
+    <li ><a href="http://localhost:8000/">Home</a></li>
+
+    
+        <li ><a href="http://localhost:8000/profile">Profile</a></li>
+        <li class="active"><a href="http://localhost:8000/apps">Apps</a></li>
+    
+        <li><a href="http://localhost:8000/docs/userdoc">Docs</a></li>
+        <li><a href="http://localhost:8000/v0.1/docs/api" target="api_docs">API</a></li>
+
+    
+        <li><a href="http://localhost:8000/auth/logout">Sign out</a></li>
+        
+
+    
+      <li ><a href="http://localhost:8000/admin/">Admin</a></li>
+     
+     </ul>
+  </div>
+
+  <div class="content">
+  
+
+  <div class="api">
+    <h1>API client apps</h1>
+    <h2>Create a new API client</h2>
+    <form method="POST" action="http://localhost:8000/apps">
+      
+            <input id="csrf_token" name="csrf_token" type="hidden" value="20201203155210##c27dfddf247033e8fea00e5bc878153fd996cf8e">
+    <label for="name">Name</label> <input class="css_class" id="name" name="name" type="text" value="">
+    
+
+      
+        <input type="submit" value="Create" name="client-create" />
+    </form>
+    <h2>API client applications</h2>
+    
+      <div class="client-app">
+        <h3>test</h3>
+        <p><strong>ID:</strong> <span class="api-key">qK4mv1UNLqQ5tp7iQnGn82_H88o6c59XA3zAbBFxjzg</span></p>
+        <p><strong>SECRET:</strong> <span class="api-secret">da5nvnOTdm1yu_QN6OTsWG59yoTOBG0dSNZSZeZuMGE</span></p>
+        <form action="/apps" method="POST">
+            <input type="hidden" name="delete" value="delete" />
+            <input type="hidden" name="client_id" value="qK4mv1UNLqQ5tp7iQnGn82_H88o6c59XA3zAbBFxjzg" />
+            <input type="submit" value="Delete" />
+        </form>
+      </div>
+    
+      <div class="client-app">
+        <h3>test2</h3>
+        <p><strong>ID:</strong> <span class="api-key">tLJDtNoCDDPhA9p-8xY79HTgDd4EFXghnCIwnsAn0SY</span></p>
+        <p><strong>SECRET:</strong> <span class="api-secret">0XbCh-BmAMXMPw_JuBLQtmpyTELD18Zl5KTEBtrax2o</span></p>
+        <form action="/apps" method="POST">
+            <input type="hidden" name="delete" value="delete" />
+            <input type="hidden" name="client_id" value="tLJDtNoCDDPhA9p-8xY79HTgDd4EFXghnCIwnsAn0SY" />
+            <input type="submit" value="Delete" />
+        </form>
+      </div>
+    
+
+  </div>
+
+
+  </div>
+
+</section>
+
+</body>
+</html>

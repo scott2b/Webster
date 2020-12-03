@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+
+
+<section id="page">
+
+  <div class="left-sidebar"></div>
+  <div class="right-sidebar"></div>
+
+    <div class="nav">
+    <ul>
+    <li ><a href="http://localhost:8000/">Home</a></li>
+
+    
+        <li ><a href="http://localhost:8000/profile">Profile</a></li>
+        <li ><a href="http://localhost:8000/apps">Apps</a></li>
+    
+        <li><a href="http://localhost:8000/docs/userdoc">Docs</a></li>
+        <li><a href="http://localhost:8000/v0.1/docs/api" target="api_docs">API</a></li>
+
+    
+        <li><a href="http://localhost:8000/auth/logout">Sign out</a></li>
+        
+
+    
+      <li ><a href="http://localhost:8000/admin/">Admin</a></li>
+     
+     </ul>
+  </div>
+
+  <div class="content">
+  
+
+  <div>
+    <a href="/admin">Admin</a> &raquo; <a href="/admin/users">Users</a> &raquo; <span>1</span>
+  </div>
+
+  <div>
+    <h2>User Profile</h2>
+    <p><strong>Scott</strong> scott@example.com</p>
+
+    
+    <form method="POST" action="http://localhost:8000/admin/users/1">
+      
+            <input id="csrf_token" name="csrf_token" type="hidden" value="20201203155349##88094aa8f6582b94f6256ed54b9496bcdf3ea612">
+
+
+
+    <label for="full_name">Full name</label> <input class="css_class" id="full_name" name="full_name" type="text" value="Scott">
+    
+
+    <label for="email">Email address</label> <input class="css_class" id="email" name="email" type="text" value="scott@example.com">
+    
+
+    
+
+    <style>
+    .checkboxes {
+      display: inline-block;
+      margin-left: 20%;
+      margin-right: 20%;
+    }
+    .narrow {
+    }
+    input[type=checkbox] {
+      margin-left: 20px;
+    }
+    </style>
+
+    <div class="checkboxes">
+      <input checked class="inline" id="is_active" name="is_active" type="checkbox" value="y">
+      <label class="inline narrow" for="is_active">Active</label>
+      <input checked class="inline" id="is_superuser" name="is_superuser" type="checkbox" value="y">
+      <label class="inline narrow" for="is_superuser">Superuser</label>
+    </div>
+
+    
+      
+      <input type="submit" name="user-info" value="Update"/>
+    </form>
+
+    
+    <hr/>
+    <h3>Password reset</h3>
+    <form method="POST" action="http://localhost:8000/admin/users/1">
+        <input type="submit" name="password-reset" value="Reset password" />
+    </form>
+    
+
+    <hr/>
+    <h3>Password change</h3>
+    <form method="POST" action="http://localhost:8000/admin/users/1">
+      <input id="csrf_token" name="csrf_token" type="hidden" value="20201203155349##88094aa8f6582b94f6256ed54b9496bcdf3ea612">
+
+      <p>
+      <label for="new_password">New password</label> <input class="css_class" id="new_password" name="new_password" type="password" value="">
+      
+      </p>
+      <p>
+      <label for="retype_password">Retype new password</label> <input class="css_class" id="retype_password" name="retype_password" type="password" value="">
+      
+      </p>
+      <input type="submit" name="password-change" value="Change password"/>
+    </form>
+
+    <hr/>
+    <h3>Delete user</h3>
+    <form method="POST" action="http://localhost:8000/admin/users/1">
+    <label for="email">Type user&#39;s email address to delete user</label> <input class="css_class" id="email" name="email" type="text" value="">
+    
+      <input type="submit" name="delete-user" value="Delete user"/>
+    </form>
+
+  </div>
+
+
+  </div>
+
+</section>
+
+</body>
+</html>

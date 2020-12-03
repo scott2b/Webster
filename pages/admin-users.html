@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+    <link href="/static/site.css" rel="stylesheet">
+</head>
+<body>
+
+
+<section id="banner">
+  <div class="messages">
+      
+      <div class="message info">
+      Deleted user: scottbradley.mail@gmail.com
+      </div>
+      
+    
+    <span id="message-closer"><img src="/static/icons/cancel-24px.svg" /></span>
+  </div>
+</section>
+
+<script>
+var closeMessages = function(event) {
+    const msgDiv = document.getElementById('banner');
+    msgDiv.style.display = 'none';
+};
+
+const closer = document.getElementById('message-closer');
+closer.onclick = closeMessages;
+</script>
+
+
+<section id="page">
+
+  <div class="left-sidebar"></div>
+  <div class="right-sidebar"></div>
+
+    <div class="nav">
+    <ul>
+    <li ><a href="http://localhost:8000/">Home</a></li>
+
+    
+        <li ><a href="http://localhost:8000/profile">Profile</a></li>
+        <li ><a href="http://localhost:8000/apps">Apps</a></li>
+    
+        <li><a href="http://localhost:8000/docs/userdoc">Docs</a></li>
+        <li><a href="http://localhost:8000/v0.1/docs/api" target="api_docs">API</a></li>
+
+    
+        <li><a href="http://localhost:8000/auth/logout">Sign out</a></li>
+        
+
+    
+      <li ><a href="http://localhost:8000/admin/">Admin</a></li>
+     
+     </ul>
+  </div>
+
+  <div class="content">
+  
+
+  <div>
+    <a href="/admin">Admin</a> &raquo; <span>Users</span>
+  </div>
+
+  <div>
+
+    <h3>Create a user</h3>
+    <form method="POST" action="http://localhost:8000/admin/users">
+      
+            <input id="csrf_token" name="csrf_token" type="hidden" value="20201203155322##0e3af1ab108ae4e21b8b32f717aa8545f729046c">
+
+
+
+    <label for="full_name">Full name</label> <input class="css_class" id="full_name" name="full_name" type="text" value="">
+    
+
+    <label for="email">Email address</label> <input class="css_class" id="email" name="email" type="text" value="">
+    
+
+    
+
+    <style>
+    .checkboxes {
+      display: inline-block;
+      margin-left: 20%;
+      margin-right: 20%;
+    }
+    .narrow {
+    }
+    input[type=checkbox] {
+      margin-left: 20px;
+    }
+    </style>
+
+    <div class="checkboxes">
+      <input checked class="inline" id="is_active" name="is_active" type="checkbox" value="y">
+      <label class="inline narrow" for="is_active">Active</label>
+      <input class="inline" id="is_superuser" name="is_superuser" type="checkbox" value="y">
+      <label class="inline narrow" for="is_superuser">Superuser</label>
+    </div>
+
+    
+      
+      <input type="submit" value="Create" name="user-create" />
+    </form>
+
+    <h3>Users</h3>
+    <table>
+      <th>ID</th><th>Active</th><th>Admin</th><th>email</th><th>name</th>
+    
+      <tr>
+      </tr>
+      <tr>
+        
+        <td><a href="http://localhost:8000/admin/users/1">1</a></td>
+        <td><span class="check"></span></td>
+        <td><span class="check"></span></td>
+        <td><a href="http://localhost:8000/admin/users/1">scott@example.com</a></td>
+        <td><a href="http://localhost:8000/admin/users/1">Scott</a></td>
+        
+      </tr>
+    
+      <tr>
+      </tr>
+      <tr>
+        
+        <td><a href="http://localhost:8000/admin/users/5">5</a></td>
+        <td></td>
+        <td></td>
+        <td><a href="http://localhost:8000/admin/users/5">foo@bar.com</a></td>
+        <td><a href="http://localhost:8000/admin/users/5">foo</a></td>
+        
+      </tr>
+    
+      <tr>
+      </tr>
+      <tr>
+        
+        <td><a href="http://localhost:8000/admin/users/6">6</a></td>
+        <td><span class="check"></span></td>
+        <td></td>
+        <td><a href="http://localhost:8000/admin/users/6">fooobarbar@example.com</a></td>
+        <td><a href="http://localhost:8000/admin/users/6">foo</a></td>
+        
+      </tr>
+    
+    </table>
+  </div>
+
+
+  </div>
+
+</section>
+
+</body>
+</html>
