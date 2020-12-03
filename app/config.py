@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     class Config:
         #env_file = '.env'
         case_sensitive = False # Has no effect on Windows ∴ not recommended
-        env_prefix = 'STARLIGHT_'
+        env_prefix = 'WEBSTER_'
 
 
 settings = Settings()
