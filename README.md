@@ -1,11 +1,34 @@
-# Starlight
+# Webster
 
+A collection of starter applications, approaches, and practices for use with
+Python microframeworks.
 
-Starter web application based on Starlette
+Currently, a Starlette application is available:
 
 ```
  $ uvicorn app.starlette.main:app --reload
 ```
+
+## Idea and goals
+
+The primary goal of this project is to provide a collection of practices and
+reference code for framework-agnostic approaches to development. Generally
+speaking, frameworks should handle routing, middleware, and with those, basic
+controller (i.e. view) functionality. To the extent possible, remaining
+functionality is factored out of the web application itself into commonly
+re-usable functionality, such as orm, forms, validation, serialization, etc.
+
+## Functionality
+
+Current functionality focuses on the following features
+
+ * ORM with SQLAlchemy
+ * Validation and serialization with pydantic
+ * Web forms with WTForms
+ * User object with basic CRUD and superuser distinction
+ * Admin console for managing users
+ * JSON API with auto-generated API docs
+ * OAuth2 for API acess, with user-associated application keys
 
 
 ## Adding models
@@ -167,3 +190,21 @@ into how we present swagger.
  * The openapi spec is available at /docs/openapi.json
 
  * Redoc is at /docs/api
+
+## Static html development
+
+Static snapshots of HTML pages are provided in the pages folder to simplify
+page style development. These pages are not used directly in a framework
+context, but are merely snapshots to facilitate tweaking styles, etc. To use
+these files run a simple server at the repository root:
+
+```
+ $ python -m http.server
+```
+
+Then access, e.g., the main page at [http://localhost:8000/pages/home.html](http://localhost:8000/pages/home.html).
+
+Note that these are manually created snapshots, and the links in these pages
+are not re-written, so you will need to correct the URLs manually, e.g.: The apps
+page is at [http://localhost:8000/pages/apps.html](http://localhost:8000/pages/apps.html),
+not at the linked `/apps`.
