@@ -10,16 +10,6 @@ from ..auth import create_random_key
 from ..orm import OAUTH2_ACCESS_TOKEN_BYTES, OAUTH2_REFRESH_TOKEN_BYTES
 
 
-
-#class Token(BaseModel):
-#    access_token: str
-#    token_type: str
-
-
-#class TokenPayload(BaseModel):
-#    sub: Optional[int] = None
-
-
 class GrantTypes(str, Enum):
     """Valid grant types"""
     client_credentials = 'client_credentials'
