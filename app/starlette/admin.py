@@ -54,7 +54,7 @@ async def admin_user(request):
                 add_message(request, f'User updated', key='user_info')
         elif 'password-reset' in data:
             reset_token = generate_password_reset_token(user.email)
-            reset_link = f'http://localhost:8000/auth/reset-password?token={reset_token}'
+            reset_link = f'{settings.SERVER_HOST}/auth/reset-password?token={reset_token}'
             expires = settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS
             add_message(request,
                 f'Reset token for {user.email} expires in {expires} hours: {reset_link}',
