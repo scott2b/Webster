@@ -62,7 +62,8 @@ class OAuth2Token(base.ModelBase, base.DataModel):
             oauth2client.OAuth2Client.id == self.client_id).first().user
 
 
-class OAuth2TokenManager():
+#class OAuth2TokenManager():
+class OAuth2TokenManager(base.CRUDManager[OAuth2Token]):
     """OAuth2 Token object manager."""
 
     @classmethod
@@ -188,5 +189,5 @@ class OAuth2TokenManager():
         db.add(token)
         return token
 
-oauth2_tokens = OAuth2TokenManager()
+oauth2_tokens = OAuth2TokenManager(OAuth2Token)
 OAuth2Token.objects = oauth2_tokens

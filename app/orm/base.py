@@ -18,7 +18,6 @@ from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from dependency_injector.wiring import Provide, Closing
 import pydantic
 from ..containers import Container
-import sqlite3
 
 
 ModelBase = declarative_base()
@@ -95,7 +94,7 @@ UpdateSchemaType = TypeVar(
     "UpdateSchemaType", bound=pydantic.BaseModel)
 
 
-class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+class CRUDManager(Generic[ModelType]):
     """Basic CRUD management."""
 
     def __init__(self, model: Type[ModelType]):
@@ -124,42 +123,16 @@ class CRUDManager(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         return db.query(self.model).offset(skip).limit(limit).all()
 
-    def create(
-            self, obj_in: CreateSchemaType, *,
-            db:Session = Closing[Provide[Container.closed_db]]) -> ModelType:
-        """Save an instance of ModelType in the database."""
-        obj_in_data = obj_in.dict()
-        db_obj = self.model(**obj_in_data)  # type: ignore
+    def create(self, properties,
+            db:Session=Closing[Provide[Container.closed_db]]) -> ModelType:
+        obj = self.model(**properties)
         try:
-            db.add(db_obj)
+            db.add(obj)
             db.commit()
         except exc.IntegrityError as e:
             db.rollback()
             raise self.model.Exists from e
-        return db_obj
-
-    def update(
-            self, *,
-            db_obj: ModelType,
-            obj_in: Union[UpdateSchemaType, Dict[str, Any]],
-            db:Session = Closing[Provide[Container.closed_db]]) -> ModelType:
-        """Update the data in the database."""
-        #obj_data = jsonable_encoder(db_obj)
-        #obj_data = db_obj.data()
-        #if isinstance(obj_in, dict):
-        #    update_data = obj_in
-        #elif isinstance(obj_in, self.model):
-        #    update_data = obj_in.dict(exclude_unset=True)
-        #else:
-        #    raise Exception('Invalid model data type.')
-        #for field in obj_data:
-        #    if field in update_data:
-        #        setattr(db_obj, field, update_data[field])
-        for k, v in obj_in.dict().items():
-            setattr(db_obj, k, v)
-        db.add(db_obj)
-        db.commit()
-        return db_obj
+        return obj
 
     def delete(
             self, *, id: int,

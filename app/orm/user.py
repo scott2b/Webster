@@ -1,4 +1,5 @@
 """User ORM model and object manager."""
+import copy
 from dataclasses import dataclass
 from typing import Optional
 from dependency_injector.wiring import Closing, Provide
@@ -6,25 +7,11 @@ from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import Session
 from sqlalchemy import exc
 from . import base
-from ..auth import get_password_hash, verify_password
+from ..auth import get_password_hash, verify_password, create_random_key
 from ..schemas.user import UserCreate, UserUpdateRequest, UserProfileResponse
 from ..containers import Container
 
-import sqlite3
-
-
-
-### Schema
-
-#class UserBase(BaseModel):
-#    id: Optional[int]
-#    full_name: Optional[str]
-#    email: Optional[str]
-#    hashed_password: Optional[str]
-#    is_active: bool = True
-#    is_superuser: bool = False
-
-### ORM
+AUTO_PASSWORD_BYTES = 16
 
 @dataclass
 class User(base.ModelBase, base.DataModel):
@@ -64,7 +51,7 @@ class User(base.ModelBase, base.DataModel):
         self.save()
 
 
-class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
+class UserManager(base.CRUDManager[User]):
     """User object manager."""
 
     @classmethod
@@ -73,56 +60,27 @@ class UserManager(base.CRUDManager[User, UserCreate, UserUpdateRequest]):
         """Get user by email address."""
         return db.query(User).filter(User.email == email).first()
 
-    def create(self,
-            obj_in: UserCreate, *,
-            db:Session = Closing[Provide[Container.closed_db]]) -> User:
-        """Create a new user in the database."""
-        #db_obj = User(
-        #    email=obj_in.email,
-        #    hashed_password=get_password_hash(obj_in.password),
-        #    full_name=obj_in.full_name,
-        #    is_superuser=obj_in.is_superuser,
-        #)
-
-        try:
-            db_obj = User(**UserCreate(**obj_in.dict()).dict())
-            #db_obj = User(**obj_in.dict())
-            db.add(db_obj)
-            db.commit()
-        except exc.IntegrityError as e:
-            db.rollback()
-            raise self.model.Exists from e
-        return db_obj
-
-    #def update(self, *,
-    #        db_obj: User,
-    #        obj_in: Union[UserUpdate, Dict[str, Any]],
-    #        db:Session = Closing[Provide[Container.closed_db]]) -> User:
-    #    """Update user object data in the database."""
-    #    #if isinstance(obj_in, dict):
-    #    #    update_data = obj_in
-    #    #else:
-    #    #    update_data = obj_in.dict(exclude_unset=True)
-    #    #if update_data.get("password"):
-    #    #    hashed_password = get_password_hash(update_data["password"])
-    #    #    del update_data["password"]
-    #    #    update_data["hashed_password"] = hashed_password
-    #    return super().update(db_obj=db_obj, obj_in=update_data, db=db)
-
     @classmethod
     def authenticate(cls, email: str, password: str, *,
             db:Session = Closing[Provide[Container.closed_db]]) -> Optional[User]:
         """Return a user by email address if the provided password verifies."""
         user = cls.get_by_email(email, db=db)
-        print(user)
         if not user:
             return None
         if not user.verify_user_password(password):
-            print(password)
-            print(user.hashed_password)
             return None
         return user
 
+    def create(self, properties, db:Session=Closing[Provide[Container.closed_db]]) -> Optional[User]:
+        properties = copy.copy(properties)
+        if properties.get('password'):
+            properties['hashed_password']= get_password_hash(properties['password'])
+        else:
+            pw = create_random_key(AUTO_PASSWORD_BYTES)
+            properties['hashed_password'] = get_password_hash(pw)
+        if 'password' in properties:
+            del properties['password']
+        return super().create(properties, db=db)
 
 users = UserManager(User)
 User.objects = users

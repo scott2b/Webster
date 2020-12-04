@@ -2,7 +2,8 @@ from starlette.authentication import requires
 from starlette.responses import RedirectResponse
 from ..forms import UserForm, PasswordForm, LoginForm, APIClientForm
 from ..messages import add_message
-from ..orm.oauth2client import OAuth2Client, OAuth2ClientCreate
+from ..orm.oauth2client import OAuth2Client #, OAuth2ClientCreate
+from ..schemas.oauth2client import OAuth2ClientCreate
 from .templates import render
 
 
@@ -22,7 +23,7 @@ async def client_apps(request):
         return RedirectResponse(url=request.url.path, status_code=302)
     if request.method == 'POST' and form.validate():
         _client = OAuth2Client.objects.create(
-            OAuth2ClientCreate(user=request.user, **data))
+            OAuth2ClientCreate(user=request.user, **data).dict())
         next = request.query_params.get('next', '/apps')
         return RedirectResponse(url=next, status_code=302)
     clients = OAuth2Client.objects.fetch_for_user(request.user)

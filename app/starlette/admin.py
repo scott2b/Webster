@@ -7,25 +7,22 @@ from ..config import settings
 from ..forms import UserForm, AdminPasswordForm, UserDeleteForm
 from ..messages import add_message
 from ..orm.user import User
-from ..schemas.user import UserCreateRequest
+from ..schemas.user import UserCreate
 
 
 @requires('admin_auth', status_code=403)
 async def admin_users(request):
     data = await request.form()
-    print('DATA', data)
     new_user_form = UserForm(request,
         formdata=data or None, meta={ 'csrf_context': request.session })
     if not data:
         # A default value on the form object field would propagate if the UI
         # form value is unselected. Thus, we set the default dynamically here.
-        print('SETTING DEFAULT is_active')
         new_user_form.is_active.data = True
     if request.method == 'POST' and new_user_form.validate():
         try:
-            schema = UserCreateRequest(**new_user_form.data)
-            print('SCHEMA', schema.dict())
-            user = User.objects.create(UserCreateRequest(**new_user_form.data))
+            properties = UserCreate(**new_user_form.data).dict()
+            user = User.objects.create(properties)
             return RedirectResponse(url=f'/admin/users/{user.id}', status_code=302)
         except User.Exists:
             new_user_form.email.errors = \

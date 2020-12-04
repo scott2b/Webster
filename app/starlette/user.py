@@ -3,11 +3,9 @@ from starlette.exceptions import HTTPException
 from starlette.responses import RedirectResponse
 from starlette.routing import Route, Router
 from ..config import settings
-from ..orm.oauth2client import OAuth2Client, OAuth2ClientCreate
 from ..orm.user import User
 from ..forms import UserForm, PasswordForm, LoginForm
 from ..messages import add_message
-from ..schemas.user import UserCreateRequest
 from .templates import render
 from ..auth import generate_password_reset_token, verify_password_reset_token
 
@@ -19,7 +17,6 @@ async def homepage(request):
         'project_name': settings.PROJECT_NAME,
         'login_form': login_form,
     })
-
 
 
 @requires('app_auth', status_code=403)

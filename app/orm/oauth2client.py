@@ -12,9 +12,7 @@ from sqlalchemy import UniqueConstraint
 from . import base
 from . import user
 from ..containers import Container
-from ..schemas.oauth2client import OAuth2ClientCreate, OAuth2ClientUpdate
 from . import OAUTH2_CLIENT_ID_MAX_CHARS, OAUTH2_CLIENT_SECRET_MAX_CHARS
-
 
 
 class InvalidOAuth2Client(Exception):
@@ -56,10 +54,7 @@ class OAuth2Client(base.ModelBase, base.DataModel):
         return secrets.compare_digest(secret, self.client_secret)
 
 
-class OAuth2ClientManager(
-        base.CRUDManager[OAuth2Client,
-        OAuth2ClientCreate,
-        OAuth2ClientUpdate]):
+class OAuth2ClientManager(base.CRUDManager[OAuth2Client]):
     """OAuth2 API object manager."""
 
 
@@ -116,5 +111,3 @@ class OAuth2ClientManager(
 
 oauth2_clients = OAuth2ClientManager(OAuth2Client)
 OAuth2Client.objects = oauth2_clients
-
-
