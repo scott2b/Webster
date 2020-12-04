@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     # ACCESS_TOKEN_EXPIRE_MINUTES: int = 30 # 60 * 24 * 8
     SERVER_NAME: str
     SERVER_HOST: AnyHttpUrl
+    ALLOWED_HOSTS: List[str]
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'

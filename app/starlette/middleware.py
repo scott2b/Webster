@@ -5,6 +5,7 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from ..config import settings
 from . import backends
 
@@ -22,6 +23,10 @@ class CustomMiddleware(BaseHTTPMiddleware):
 
 
 def setup_middleware(app):
+    if settings.ALLOWED_HOSTS:
+        app.add_middleware(
+            TrustedHostMiddleware,
+            allowed_hosts=settings.ALLOWED_HOSTS)
     if settings.BACKEND_CORS_ORIGINS:
         app.add_middleware(
             CORSMiddleware,
