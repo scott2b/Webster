@@ -151,9 +151,12 @@ div.nav {
   margin: 1em 2em 0 2em;
 }
 
-div.nav li.active>a {
+div.nav li.active>a,
+div.nav li a:hover {
   text-decoration: underline;
+  color: var(--primary);
 }
+
 
 .header {
   grid-column: 2 / 3;
@@ -172,6 +175,17 @@ div.nav li.active>a {
   grid-row: 2
 }
 
+.console .form {
+  text-align: right;
+  max-width: 80%;
+}
+
+.console .profile-section {
+  border-top: 1px solid #AAAAAA;
+  padding-left: 15px;
+  padding-bottom: 15px;
+}
+
 
 input {
   font-size: 1em;
@@ -182,6 +196,26 @@ input {
   border-radius: 4px;
 }
 
+input.submit {
+  font-size: 1em;
+  padding: 0.25em 0.5em;
+  margin: 0.25em 0.25em;
+  background-color: #ECECEC;
+  border: 2px solid #9C9C9C;
+  border-radius: 4px;
+}
+
+input.submit:hover {
+  font-size: 1em;
+  padding: 0.25em 0.5em;
+  margin: 0.25em 0.25em;
+  background-color: #1a69df;
+  border: 2px solid #1a69df;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #FFFFFF;
+}
+
 .client-app {
   border: 1px solid #666;
   border-radius: 10px;
@@ -189,9 +223,14 @@ input {
   margin-bottom: .5em;
 }
 
-label {
+.profile-section .checkboxes {
   display: inline-block;
-  width: 20%;
+  margin-left: 0;
+  margin-right: 10%;
+}
+
+input[type=checkbox] {
+  margin-left: 20px;
 }
 
 input[type=text] {
