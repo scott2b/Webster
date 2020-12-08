@@ -4,30 +4,21 @@
 <h1>{{ form.messages }}</h1>
 {% endif %}
 
+    <p>
     {{ form.full_name.label }} {{ form.full_name(class="css_class") }}
     {% if form.full_name.errors %}
         <ul class="errors">{% for error in form.full_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
     {% endif %}
+    </p>
 
+    <p>
     {{ form.email.label }} {{ form.email(class="css_class") }}
     {% if form.email.errors %}
         <ul class="errors">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
     {% endif %}
+    </p>
 
     {% if request.user.is_superuser %}
-
-    <style>
-    .checkboxes {
-      display: inline-block;
-      margin-left: 20%;
-      margin-right: 20%;
-    }
-    .narrow {
-    }
-    input[type=checkbox] {
-      margin-left: 20px;
-    }
-    </style>
 
     <div class="checkboxes">
       {{ form.is_active(class="inline") }}
