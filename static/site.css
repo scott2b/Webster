@@ -237,6 +237,17 @@ input[type=text] {
   width: 70%;
 }
 
+textarea {
+  display: block;
+  padding: 10px;
+  margin: 10px 0 0 0;
+  width: 77%;
+  height: 50%;
+  border: 2px solid #999;
+  border-radius: .5em;
+  overflow: auto;
+}
+
 
 ul.errors {
   list-style: none;
