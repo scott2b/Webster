@@ -3,8 +3,8 @@ from starlette.authentication import requires
 from starlette.responses import JSONResponse
 from ...orm.user import User, UserProfileResponse
 from ...schemas.user import UserUpdateRequest, UserPasswordUpdateRequest
-from . import _app, APIExceptionResponse, APIMessage
-from . import ValidationErrorList
+from .clients import _app, APIExceptionResponse, APIMessage
+from .clients import ValidationErrorList
 from pydantic import ValidationError
 
 

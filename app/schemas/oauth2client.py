@@ -50,6 +50,7 @@ class OAuth2ClientUpdate(OAuth2ClientBase):
     name: str
 
 
+
 class OAuth2ClientRequest(BaseModel):
     """Client request schema"""
     name: str
@@ -83,6 +84,7 @@ class OAuth2ClientResponse(BaseModel):
         if v:
             return v.isoformat()
         return None
+
 
 class OAuth2ClientListResponse(BaseModel):
     """Client list schema"""
