@@ -4,9 +4,7 @@ import asyncio
 import json
 import os
 import typer
-from .api import WebsterClient
-
-VERSION = 'v0.1a'
+from .api import WebsterClient, VERSION
 
 
 app_id = os.environ['WEBSTER_APP_ID']

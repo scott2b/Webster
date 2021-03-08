@@ -208,3 +208,11 @@ Note that these are manually created snapshots, and the links in these pages
 are not re-written, so you will need to correct the URLs manually, e.g.: The apps
 page is at [http://localhost:8000/pages/apps.html](http://localhost:8000/pages/apps.html),
 not at the linked `/apps`.
+
+## Client
+
+```
+ $ export WEBSTER_APP_ID=<app ID>
+ $ export WEBSTER_APP_SECRET=<app secret>
+ $ python -m client.cli
+```

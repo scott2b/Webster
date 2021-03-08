@@ -17,6 +17,8 @@ logger = logging.getLogger('websterclient')
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.INFO)
 
+VERSION = 'v0.1'
+
 class InvalidRequest(Exception):
     ...
 
@@ -139,4 +141,7 @@ class WebsterClient():
         return self.post(url, data=data)
 
     def profile(self):
-        return self.pathget('profile', version='v0.1')
+        return self.pathget('profile', version=VERSION)
+
+    def openapi(self):
+        return self.pathget('docs/openapi.json', version=VERSION)
