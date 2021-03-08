@@ -145,3 +145,11 @@ class WebsterClient():
 
     def openapi(self):
         return self.pathget('docs/openapi.json', version=VERSION)
+
+    def get_clients(self):
+        return self.pathget('clients', version=VERSION)
+
+    def create_client(self, client_name):
+        return self.pathpost('clients', version=VERSION, data={
+            'name': client_name
+        })

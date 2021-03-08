@@ -16,7 +16,6 @@ _client = None
 def client():
     global _client
     if _client is None:
-        print('instantiating new client')
         _client = WebsterClient(app_id, app_secret)
     return _client
 
@@ -52,6 +51,14 @@ def openapi():
 @app.command()
 def profile():
     r = client().profile()
+    output(r.json())
+
+
+@app.command()
+def clients(new=None):
+    if new:
+        client().create_client(client_name=new)
+    r = client().get_clients()
     output(r.json())
 
 
