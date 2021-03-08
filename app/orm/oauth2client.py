@@ -11,8 +11,10 @@ from sqlalchemy.orm import relationship, Session
 from sqlalchemy import UniqueConstraint
 from . import base
 from . import user
-from ..containers import Container
 from . import OAUTH2_CLIENT_ID_MAX_CHARS, OAUTH2_CLIENT_SECRET_MAX_CHARS
+from . import OAUTH2_CLIENT_ID_BYTES, OAUTH2_CLIENT_SECRET_BYTES
+from ..auth import create_random_key
+from ..containers import Container
 
 
 class InvalidOAuth2Client(Exception):
@@ -57,6 +59,13 @@ class OAuth2Client(base.ModelBase, base.DataModel):
 class OAuth2ClientManager(base.CRUDManager[OAuth2Client]):
     """OAuth2 API object manager."""
 
+    def create(self, properties,
+            db:Session=Closing[Provide[Container.closed_db]]) -> base.ModelType:
+        if 'client_id' not in properties:
+            properties['client_id'] = create_random_key(OAUTH2_CLIENT_ID_BYTES)
+        if 'client_secret' not in properties:
+            properties['client_secret'] = create_random_key(OAUTH2_CLIENT_SECRET_BYTES)
+        return super(OAuth2ClientManager, self).create(properties, db=db)
 
     @classmethod
     def get_by_client_id(cls, client_id: str, *,
@@ -71,8 +80,6 @@ class OAuth2ClientManager(base.CRUDManager[OAuth2Client]):
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> Optional[OAuth2Client]:
         """Get an API client by client ID."""
-        #obj = OAuth2ClientRetrieve(user=user, client_id=client_id)
-        print('GET FOR USER', user, client_id)
         return db.query(OAuth2Client).filter(
             OAuth2Client.client_id == client_id,
             OAuth2Client.user == user).one_or_none()

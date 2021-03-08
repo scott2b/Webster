@@ -4,7 +4,6 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 from ...orm.oauth2client import OAuth2Client
 from ...schemas.oauth2client import (
-    OAuth2ClientCreate,
     OAuth2ClientResponse,
     OAuth2ClientRequest,
     OAuth2ClientListResponse)
@@ -182,6 +181,8 @@ async def clients_delete(request, db):
             status_code=200)
     raise HTTPException(404, detail="Not found")
 
+from ...auth import create_random_key
+from ...orm import OAUTH2_CLIENT_ID_BYTES, OAUTH2_CLIENT_SECRET_BYTES
 
 @requires('api_auth', status_code=403)
 @_app.validate(json=OAuth2ClientRequest,
@@ -194,8 +195,9 @@ async def clients_post(request):
     data = await request.json()
     try:
         user = request.scope['token'].get_user()
-        _client = OAuth2Client.objects.create(
-            OAuth2ClientCreate(user=user, **data).dict())
+        _client = OAuth2Client.objects.create({
+            'user': user,
+            'name': data['name']})
     except OAuth2Client.Exists:
         return JSONResponse([ { 'loc': ['name'],
             'msg': 'Client name already exists for account.',
