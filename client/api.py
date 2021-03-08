@@ -109,6 +109,8 @@ class WebsterClient():
                 return self.client.get(f'{url}?{query}')
             elif method == 'post':
                 return self.client.post(url, json=data)
+            elif method == 'delete':
+                return self.client.delete(url)
             else:
                 raise Exception('Unsupported dispatch method')
         except oauthlib.oauth2.rfc6749.errors.MissingTokenError:
@@ -130,6 +132,9 @@ class WebsterClient():
     def post(self, url, data=None):
         return self.dispatch('post', url, data=data)
 
+    def delete(self, url):
+        return self.dispatch('delete', url)
+
     def pathget(self, path, version='', **query):
         v = self.VER[version]
         url = f'{v}/{path}'
@@ -139,6 +144,11 @@ class WebsterClient():
         v = self.VER[version]
         url = f'{v}/{path}'
         return self.post(url, data=data)
+
+    def pathdelete(self, path, version=''):
+        v = self.VER[version]
+        url = f'{v}/{path}'
+        return self.delete(url)
 
     def profile(self):
         return self.pathget('profile', version=VERSION)
@@ -153,3 +163,6 @@ class WebsterClient():
         return self.pathpost('clients', version=VERSION, data={
             'name': client_name
         })
+
+    def delete_client(self, client_id):
+        return self.pathdelete(f'clients/{client_id}', version=VERSION)

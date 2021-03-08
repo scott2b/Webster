@@ -55,9 +55,11 @@ def profile():
 
 
 @app.command()
-def clients(new=None):
+def clients(new=None, delete=None):
     if new:
         client().create_client(client_name=new)
+    if delete:
+        client().delete_client(client_id=delete)
     r = client().get_clients()
     output(r.json())
 
