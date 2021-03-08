@@ -195,7 +195,7 @@ async def clients_post(request):
     try:
         user = request.scope['token'].get_user()
         _client = OAuth2Client.objects.create(
-            OAuth2ClientCreate(user=user, **data))
+            OAuth2ClientCreate(user=user, **data).dict())
     except OAuth2Client.Exists:
         return JSONResponse([ { 'loc': ['name'],
             'msg': 'Client name already exists for account.',
