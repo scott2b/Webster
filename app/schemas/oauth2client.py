@@ -4,30 +4,6 @@ Schema for OAuth2 application client
 import datetime
 from typing import List, Optional
 from pydantic import BaseModel, validator
-from ..orm.user import User
-from ..auth import create_random_key
-from ..orm import OAUTH2_CLIENT_ID_BYTES, OAUTH2_CLIENT_SECRET_BYTES
-
-
-class OAuth2ClientBase(BaseModel):
-    """OAuth2 API client base validator."""
-
-    class Config:
-        """Config OAuth2ClientBase."""
-        arbitrary_types_allowed = True
-
-    id: Optional[int]
-    name: Optional[str]
-    client_id: Optional[str]
-    client_secret: Optional[str]
-    created_at: Optional[datetime.datetime]
-    secret_expires_at: Optional[datetime.datetime]
-    user: Optional[User]
-
-
-class OAuth2ClientUpdate(OAuth2ClientBase):
-    """OAuth2 API client update name."""
-    name: str
 
 
 class OAuth2ClientRequest(BaseModel):
