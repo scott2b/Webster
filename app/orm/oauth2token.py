@@ -9,14 +9,22 @@ from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Text, Bool
 from sqlalchemy.orm import relationship, Session
 from . import base
 from ..containers import Container
-from ..schemas.oauth2token import TokenCreateRequest, TokenRefreshRequest, OAuth2TokenCreate
 from ..schemas import oauth2token
 from . import oauth2client
 from . import OAUTH2_ACCESS_TOKEN_MAX_CHARS, OAUTH2_REFRESH_TOKEN_MAX_CHARS
+from . import OAUTH2_ACCESS_TOKEN_BYTES, OAUTH2_REFRESH_TOKEN_BYTES
+from ..auth import create_random_key
+from ..config import settings
 
+DEFAULT_ACCESS_LIFETIME = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS,
+DEFAULT_REFRESH_LIFETIME = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS,
 
 class InvalidGrantType(Exception):
     """Invalid token auth grant-type."""
+
+
+class InvalidScope(Exception):
+    """Invalid scope requested."""
 
 
 class Revoked(Exception):
@@ -62,7 +70,6 @@ class OAuth2Token(base.ModelBase, base.DataModel):
             oauth2client.OAuth2Client.id == self.client_id).first().user
 
 
-#class OAuth2TokenManager():
 class OAuth2TokenManager(base.CRUDManager[OAuth2Token]):
     """OAuth2 Token object manager."""
 
@@ -83,7 +90,10 @@ class OAuth2TokenManager(base.CRUDManager[OAuth2Token]):
             OAuth2Token.refresh_token == refresh_token).one_or_none()
 
     @classmethod
-    def create(cls, obj_in:oauth2token.TokenCreateRequest, *,
+    def create_for_client(cls, grant_type, client_id, client_secret,
+            scope='api', token_type=None,
+            access_token_expires_at=None,
+            refresh_token_expires_at=None, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> OAuth2Token:
         """
@@ -136,18 +146,40 @@ class OAuth2TokenManager(base.CRUDManager[OAuth2Token]):
             * error_description (ascii only - a sentence or 2)
             * error_uri - link, e.g. to api docs
         """
-        client = oauth2client.oauth2_clients.get_by_client_id(obj_in.client_id, db=db)
+        if grant_type != 'client_credentials':
+            raise InvalidGrantType(grant_type)
+        client = oauth2client.oauth2_clients.get_by_client_id(client_id, db=db)
         if not client:
             raise oauth2client.OAuth2Client.DoesNotExist
-        if not client.compare_secret(obj_in.client_secret):
+        if not client.compare_secret(client_secret):
             raise oauth2client.OAuth2Client.InvalidOAuth2Client
-        data = oauth2token.OAuth2TokenCreate(**obj_in.dict(), client=client)
-        token = OAuth2Token(**data.dict())
+        if scope != 'api':
+            raise InvalidScope
+        params = {
+            'client_id': client.id, # for foreign key use the client object pk, not the app ID
+            'token_type': token_type,
+            'scope': scope
+        }
+        params['access_token'] = create_random_key(OAUTH2_ACCESS_TOKEN_BYTES)
+        params['refresh_token'] = create_random_key(OAUTH2_REFRESH_TOKEN_BYTES)
+        if not access_token_expires_at:
+            access_lifetime = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
+            access_token_expires_at = datetime.datetime.utcnow() \
+                + datetime.timedelta(seconds=access_lifetime)
+        if not refresh_token_expires_at:
+            refresh_lifetime = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
+            refresh_token_expires_at = datetime.datetime.utcnow() \
+                + datetime.timedelta(seconds=refresh_lifetime)
+        params['access_token_expires_at'] = access_token_expires_at
+        params['refresh_token_expires_at'] = refresh_token_expires_at
+        token = OAuth2Token(**params)
         db.add(token)
         return token
 
     @classmethod
-    def refresh(cls, obj_in:oauth2token.TokenRefreshRequest, *,
+    def refresh(cls, grant_type, refresh_token,
+            access_lifetime=DEFAULT_ACCESS_LIFETIME,
+            refresh_lifetime=DEFAULT_REFRESH_LIFETIME, *,
             db:Session=Closing[Provide[Container.closed_db]]
         ) -> OAuth2Token:
         """
@@ -172,7 +204,9 @@ class OAuth2TokenManager(base.CRUDManager[OAuth2Token]):
         ? is requests including client_id & secret in refresh requests?
         NO DOES NOT SEEM TO
         """
-        token = cls.get_by_refresh_token(obj_in.refresh_token, db=db)
+        if grant_type != 'refresh_token':
+            raise InvalidGrantType(grant_type)
+        token = cls.get_by_refresh_token(refresh_token, db=db)
         # TODO: ensure scope request is not expanded
         # TODO: do we need to check client auth? requests does not include
         #       client_id or secret in a refresh request
@@ -182,10 +216,14 @@ class OAuth2TokenManager(base.CRUDManager[OAuth2Token]):
             raise OAuth2Token.Revoked
         if datetime.datetime.now() > token.refresh_token_expires_at:
             raise OAuth2Token.Expired
-        token.access_token = obj_in.access_token
-        token.refresh_token = obj_in.refresh_token
-        token.access_token_expires_at = obj_in.access_token_expires_at
-        token.refresh_token_expires_at = obj_in.refresh_token_expires_at
+        token.access_token = create_random_key(OAUTH2_ACCESS_TOKEN_BYTES)
+        token.refresh_token = create_random_key(OAUTH2_REFRESH_TOKEN_BYTES)
+        access_lifetime = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS
+        token.access_token_expires_at = datetime.datetime.utcnow() \
+                + datetime.timedelta(seconds=access_lifetime)
+        refresh_lifetime = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS
+        token.refresh_token_expires_at = datetime.datetime.utcnow() \
+                + datetime.timedelta(seconds=refresh_lifetime)
         db.add(token)
         return token
 

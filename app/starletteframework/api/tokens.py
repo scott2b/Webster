@@ -4,12 +4,13 @@ from starlette.responses import JSONResponse
 from ...config import settings
 from ...orm.oauth2client import OAuth2Client
 from ...orm.oauth2token import OAuth2Token
-from ...schemas.oauth2token import TokenResponse, TokenCreateRequest, TokenRefreshRequest
+from ...schemas.oauth2token import TokenResponse, TokenRefreshRequest, NewTokenRequest
 from .clients import _app, ValidationErrorList, APIExceptionResponse
 
 
 # OAuth2 spec seems to mandate form data (not json) for a token request:
 # https://github.com/requests/requests-oauthlib/issues/244
+# SpecTree does not have form validation, so we validate inside the function.
 
 @_app.validate(json=None,
                resp=Response(HTTP_201=TokenResponse,
@@ -19,12 +20,9 @@ from .clients import _app, ValidationErrorList, APIExceptionResponse
                              HTTP_422=ValidationErrorList), tags=['tokens'])
 async def token_refresh(request):
     data = dict(await request.form())
-    obj = TokenRefreshRequest(
-        access_lifetime = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS,
-        refresh_lifetime = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS,
-        **data)
+    validated = TokenRefreshRequest(**data)
     try:
-        token = OAuth2Token.objects.refresh(obj)
+        token = OAuth2Token.objects.refresh(**validated.dict())
     except OAuth2Token.DoesNotExist:
         raise HTTPException(404, "Not found")
     except OAuth2Token.Revoked:
@@ -42,12 +40,9 @@ async def token_refresh(request):
                              HTTP_422=ValidationErrorList), tags=['tokens'])
 async def token_create(request):
     data = dict(await request.form())
+    validated = NewTokenRequest(**data)
     try:
-        obj = TokenCreateRequest(
-            access_lifetime = settings.OAUTH2_ACCESS_TOKEN_TIMEOUT_SECONDS,
-            refresh_lifetime = settings.OAUTH2_REFRESH_TOKEN_TIMEOUT_SECONDS,
-            scope='api', **data)
-        token = OAuth2Token.objects.create(obj)
+        token = OAuth2Token.objects.create_for_client(**validated.dict())
     except (OAuth2Client.DoesNotExist, OAuth2Client.InvalidOAuth2Client):
         raise HTTPException(401, "Unauthorized")
     except OAuth2Token.InvalidGrantType:
