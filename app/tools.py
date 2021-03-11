@@ -19,16 +19,16 @@ def users():
 @click.argument('password')
 @click.option('--superuser', is_flag=True, default=False)
 def create_user(full_name, email, password, superuser):
-    user = schemas.user.UserCreateRequest(
-       full_name=full_name,
-       email=email,
-       password=password,
-       is_superuser=superuser
-    )
+    properties = {
+       'full_name': full_name,
+       'email': email,
+       'password': password,
+       'is_superuser': superuser
+    }
     session = SessionLocal()
     try:
         from .orm.user import users
-        users.create(obj_in=user, db=session)
+        users.create(properties, db=session)
     except:
         session.rollback()
         raise
