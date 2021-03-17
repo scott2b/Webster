@@ -1,8 +1,8 @@
-"""empty message
+"""init
 
-Revision ID: cfc432b71e09
+Revision ID: bb07d7c733b7
 Revises: 
-Create Date: 2020-11-19 02:37:26.568113
+Create Date: 2021-03-17 17:24:59.807206
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'cfc432b71e09'
+revision = 'bb07d7c733b7'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -29,12 +29,11 @@ def upgrade():
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_full_name'), 'users', ['full_name'], unique=False)
-    op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_table('oauth2_clients',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('client_id', sa.String(length=48), nullable=False),
-    sa.Column('client_secret', sa.String(length=96), nullable=False),
+    sa.Column('client_secret', sa.String(length=48), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('secret_expires_at', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -72,7 +71,6 @@ def downgrade():
     op.drop_index(op.f('ix_oauth2_clients_client_secret'), table_name='oauth2_clients')
     op.drop_index(op.f('ix_oauth2_clients_client_id'), table_name='oauth2_clients')
     op.drop_table('oauth2_clients')
-    op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_index(op.f('ix_users_full_name'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')

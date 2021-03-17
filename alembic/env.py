@@ -5,6 +5,7 @@ from sqlalchemy import pool
 from alembic import context
 
 sys.path = ['', '..'] + sys.path[1:]
+
 from app.orm.base import ModelBase
 from app.orm.user import User
 from app.orm.oauth2client import OAuth2Client
@@ -22,7 +23,6 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-
 target_metadata = ModelBase.metadata
 
 # other values from the config, defined by the needs of env.py,

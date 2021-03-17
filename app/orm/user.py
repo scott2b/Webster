@@ -20,7 +20,7 @@ class User(base.ModelBase, base.DataModel):
     __tablename__ = "users"
     default_schema = UserProfileResponse
 
-    id:int = Column(Integer, primary_key=True, index=True)
+    id:int = Column(Integer, primary_key=True)
     full_name:str = Column(String, index=True)
     email:str = Column(String, unique=True, index=True, nullable=False)
     hashed_password:str = Column(String, nullable=False)
