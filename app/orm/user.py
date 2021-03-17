@@ -33,9 +33,6 @@ class User(base.ModelBase, base.DataModel):
         return True
 
     def verify_user_password(self, password):
-        print('input pw:', password)
-        print('hashed input', get_password_hash(password))
-        print('user hashed pw', self.hashed_password)
         return verify_password(password, self.hashed_password)
 
     def change_password(self, current_password, new_password):
