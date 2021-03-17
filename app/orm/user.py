@@ -46,9 +46,9 @@ class User(base.ModelBase, base.DataModel):
         else:
             return False
 
-    def set_password(self, password):
+    def set_password(self, password, db):
         self.hashed_password = get_password_hash(password)
-        self.save()
+        self.save(db=db)
 
 
 class UserManager(base.CRUDManager[User]):

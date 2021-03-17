@@ -1,3 +1,7 @@
+from .wiring import do_wiring
+
+do_wiring()
+
 import click
 from . import orm, schemas
 from .orm.db import session_scope
@@ -39,13 +43,14 @@ def create_user(full_name, email, password, superuser):
 @click.argument('email')
 @click.argument('password')
 def update_user(email, password):
-    session = SessionLocal()
-    user = User.objects.get_by_email(email=email, db=session)
+    with session_scope() as db:
+        user = User.objects.get_by_email(email=email, db=db)
+        user.set_password(password, db)
     #user_data = jsonable_encoder(user)
     #user_in = schemas.user.AdministrativeUserUpdateRequest(**user_data)
-    obj_in = schemas.user.AdministrativeUserUpdateRequest(password=password,
-        **user.dict())
-    user = User.objects.update(db_obj=user, obj_in=obj_in, db=session)
+    #obj_in = schemas.user.AdministrativeUserUpdateRequest(password=password,
+    #    **user.dict())
+    #user = User.objects.update(db_obj=user, obj_in=obj_in, db=session)
 
 
 @click.command()
