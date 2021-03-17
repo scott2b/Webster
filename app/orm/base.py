@@ -11,10 +11,9 @@ https://fastapi.tiangolo.com/python-types/
 import dataclasses
 from typing import Any, Dict, Generic, List, Optional, Protocol
 from typing import Type, TypeVar, Union
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy import exc
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.orm.decl_api import DeclarativeMeta
 from dependency_injector.wiring import Provide, Closing
 import pydantic
 from ..containers import Container

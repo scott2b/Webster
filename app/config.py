@@ -5,6 +5,7 @@ from pydantic import AnyHttpUrl, BaseSettings, EmailStr, PostgresDsn, validator,
 
 class Settings(BaseSettings):
     DEBUG: bool = False
+    LOG_SQL: bool = False
     MOCK_CLASSIFIERS: bool = False
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)

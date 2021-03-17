@@ -12,11 +12,14 @@ from .config import settings
 #from sqlalchemy.ext.asyncio import create_async_engine
 #from sqlalchemy.ext.asyncio import AsyncSession
 
-
 """
 Use scope_session for thread-local scoping to avoid session leaks.
 """
-engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
+engine = create_engine(
+    settings.SQLALCHEMY_DATABASE_URI,
+    echo=settings.LOG_SQL,
+    future=True, # SQLAlchemy 2.0 compatibility
+    pool_pre_ping=True)
 SessionLocal = sessionmaker(
     autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
 #SessionLocal = scoped_session(sessionmaker(
