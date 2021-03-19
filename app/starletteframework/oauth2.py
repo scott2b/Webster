@@ -1,7 +1,7 @@
 from starlette.authentication import requires
 from starlette.responses import RedirectResponse
-from ..forms import UserForm, PasswordForm, LoginForm, APIClientForm
-from ..messages import add_message
+from .. import messages
+from ..forms import APIClientForm
 from ..orm.oauth2client import OAuth2Client
 from .templates import render
 
@@ -13,7 +13,7 @@ async def client_apps(request):
     if request.method == 'POST' and 'delete' in data:
         OAuth2Client.objects.delete_for_user(request.user,
             client_id=data['client_id'])
-        add_message(
+        messages.add(
             request,
             f'Deleted app with client ID: {data["client_id"]}',
             classes=['info']

@@ -1,13 +1,9 @@
 from starlette.authentication import requires
-from starlette.exceptions import HTTPException
 from starlette.responses import RedirectResponse
-from starlette.routing import Route, Router
+from .. import messages
 from ..config import settings
-from ..orm.user import User
 from ..forms import UserForm, PasswordForm, LoginForm
-from ..messages import add_message
 from .templates import render
-from ..auth import generate_password_reset_token, verify_password_reset_token
 
 
 async def homepage(request):
@@ -41,7 +37,7 @@ async def profile(request):
                 password_form.current_password.data,
                 password_form.new_password.data)
             if valid:
-                add_message(request, 'Password changed', classes=['info'])
+                messages.add(request, 'Password changed', classes=['info'])
         if valid:
             return RedirectResponse(url=request.url.path, status_code=302)
     return render('user.html', {

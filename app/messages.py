@@ -38,3 +38,7 @@ def add_message(request, message, key:str=None, classes:List[str]=None):
         msg['class'] = ' '.join(classes)
     request.session[key].append(msg)
 
+
+def add(*args, **kwargs):
+    """An alias for add_message."""
+    return add_message(*args, **kwargs)

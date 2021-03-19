@@ -1,8 +1,8 @@
 from starlette.responses import RedirectResponse
 from starlette.routing import Route, Router
+from .. import messages
 from ..auth import verify_password_reset_token
 from ..forms import LoginForm, PasswordResetForm
-from ..messages import add_message
 from ..orm.user import User
 from .templates import render
 
@@ -24,7 +24,7 @@ async def login(request):
 
 def logout(request):
     del request.session['user_id']
-    add_message(request, 'You are now logged out.', classes=['info'])
+    messages.add(request, 'You are now logged out.', classes=['info'])
     return RedirectResponse(url='/')
 
 
@@ -38,7 +38,7 @@ async def reset_password(request):
     if request.method == 'POST' and form.validate():
         user = User.objects.get_by_email(email)
         user.set_password(form.new_password.data)
-        add_message(request,
+        messages.add(request,
             'You may now sign in with your new password.',
             classes=['info']
         )

@@ -2,10 +2,10 @@ from starlette.authentication import requires
 from starlette.responses import RedirectResponse
 from starlette.routing import Route, Router
 from .templates import render
+from .. import messages
 from ..auth import generate_password_reset_token
 from ..config import settings
 from ..forms import UserForm, AdminPasswordForm, UserDeleteForm
-from ..messages import add_message
 from ..orm.user import User
 from ..schemas.user import UserCreate
 
@@ -51,12 +51,12 @@ async def admin_user(request):
             if valid:
                 user_form.populate_obj(user) 
                 user.save()
-                add_message(request, f'User updated', key='user_info')
+                messages.add(request, f'User updated', key='user_info')
         elif 'password-reset' in data:
             reset_token = generate_password_reset_token(user.email)
             reset_link = f'{settings.SERVER_HOST}/auth/reset-password?token={reset_token}'
             expires = settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS
-            add_message(request,
+            messages.add(request,
                 f'Reset token for {user.email} expires in {expires} hours: {reset_link}',
                 classes=['info']
             )
@@ -66,7 +66,7 @@ async def admin_user(request):
             valid = password_form.validate()
             if valid:
                 user.set_password(password_form.new_password.data)
-                add_message(request,
+                messages.add(request,
                     f'Password changed for user: {user.email}',
                     classes=['info'])
         elif 'delete-user' in data:
@@ -76,7 +76,7 @@ async def admin_user(request):
             verify_email = user_delete_form.email.data
             if verify_email == user.email:
                 User.objects.delete(id=user.id)
-                add_message(request,
+                messages.add(request,
                     f'Deleted user: {verify_email}',
                     classes=['info'])
                 return RedirectResponse(url='/admin/users', status_code=302)
