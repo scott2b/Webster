@@ -15,7 +15,7 @@
     {% endif %}
 
     <h2><a href="{{ request.url_for('docs') }}">User documentation</a></h2>
-    <h2><a href="/docs/api" target="api_docs">API reference</a></h2>
+    <h2><a href="{{ request.url_for('api_docs') }}" target="api_docs">API reference</a></h2>
 
   </div>
 
