@@ -8,8 +8,8 @@
         <a href="{{request.url_for('api_docs')}}" target="api_docs" class="button">API<sup><span class="icon-link"></span></sup></a>
 
     {% if request.user.is_authenticated %}
-        <a href="{{ request.url_for('auth:logout') }}" class="button">Sign out 
-          <span class="icon-user" alt="signed in as {{ request.user.full_name }}" title="signed in as {{ request.user.full_name }}"></span></span>
+        <a id="signout-link" href="{{ request.url_for('auth:logout') }}" class="button" alt="signed in as {{ request.user.full_name }}">Sign out 
+          <span class="icon-user"></span></span>
         </a>
         {% else %}
         <a href="/auth/login" class="button">Sign in</a>
@@ -18,3 +18,7 @@
     {% if request.user.is_superuser %}
       <a href="{{ request.url_for('admin:home') }}" class="button">Admin</a>
     {% endif %}
+
+    <script>
+      tippy("#signout-link", { content: "Signed in as {{ request.user.full_name }}" });
+    </script>

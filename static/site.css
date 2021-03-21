@@ -91,6 +91,13 @@ div.right-sidebar {
   }
 }
 
+span.icon-copy {
+  padding: 10px;
+  background-image:url('/static/icons/feather/copy.svg'); 
+  background-size: 24px;
+  background-repeat: no-repeat;
+}
+
 span.icon-check {
   padding: 10px;
   background-image:url('/static/icons/feather/check.svg'); 

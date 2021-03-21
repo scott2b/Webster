@@ -16,8 +16,8 @@
     {% for client in api_clients %}
       <div class="card fluid">
         <div class="section dark">{{ client.name }}</div>
-        <p><strong>ID:</strong> <span class="api-key">{{ client.client_id }}</span></p>
-        <p><strong>SECRET:</strong> <span class="api-secret">{{ client.client_secret }}</span></p>
+        <p><strong>ID:</strong> <span class="api-key copy-text">{{ client.client_id }}</span> <span class="icon-copy"></span></p>
+        <p><strong>SECRET:</strong> <span class="api-secret copy-text">{{ client.client_secret }}</span> <span class="icon-copy"></span></p>
         <form action="/apps" method="POST">
             <input type="hidden" name="delete" value="delete" />
             <input type="hidden" name="client_id" value="{{client.client_id}}" />
@@ -27,5 +27,46 @@
     {% endfor %}
 
   </div>
+
+
+  <style>
+    .copy-text {
+        padding: .5em;
+        border-radius: .5em;
+        transition: all .5s ease-out;
+    }
+  </style>
+
+  <script>
+
+    const copiers = document.getElementsByClassName('icon-copy');
+    for (var i = 0; i < copiers.length; i++) {
+        var t = tippy(copiers[i], {
+            content: 'copy to clipboard',
+            onHidden(instance) {
+                instance.setProps({ content: 'copy to clipboard', arrow: true });
+            }
+        });
+        copiers[i].addEventListener('click', function(event) {
+            var copyIcon = event.target;
+            var elem = event.target.closest("p");
+            textElem = elem.getElementsByClassName('copy-text')[0];
+            textElem.style = "background-color: #ccc;";
+            var text = textElem.innerText;
+            navigator.clipboard.writeText(text).then(function() {
+                copyIcon._tippy.setProps({
+                    content: 'copied',
+                    arrow: false
+                });
+                copyIcon._tippy.show();
+                window.setTimeout(function() {
+                    copyIcon._tippy.hide();
+                    textElem.style = "background-color: var(--card-back-color);";
+                }, 1000);
+            });
+        });
+    }
+
+  </script>
 
 {% endblock content %}
