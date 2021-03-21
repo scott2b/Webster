@@ -35,6 +35,10 @@ async def reset_password(request):
         token = request.query_params['token'] 
         form.token.data = token
     email = verify_password_reset_token(form.token.data)
+    if email is None:
+        messages.add(request,
+            'Invalid password reset token. Please contact adminstrator.',
+            classes=['error'])
     if request.method == 'POST' and form.validate():
         user = User.objects.get_by_email(email)
         user.set_password(form.new_password.data)

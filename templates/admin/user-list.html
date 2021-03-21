@@ -3,11 +3,15 @@
 {% block content %}
 
   <div>
-    <a href="/admin">Admin</a> &raquo; <span>Users</span>
+    <br/>
+    <span class="responsive-margin"><a href="/admin">Admin</a></span>
+    &raquo;
+    <span class="responsive-margin">Users</span>
+    <hr/>
   </div>
 
-  <div>
-
+  <div class="row">
+    <div class="col-sm-12 col-md-12">
     <h3>Create a user</h3>
     <form method="POST" action="{{ request.url_for('admin:users') }}">
       {% with action='.' %}
@@ -15,24 +19,29 @@
       {% endwith %}
       <input type="submit" value="Create" name="user-create" />
     </form>
+    </div>
+  </div>
 
+  <div class="row">
+    <div class="col-sm-12 col-md-12">
     <h3>Users</h3>
-    <table>
-      <th>ID</th><th>Active</th><th>Admin</th><th>email</th><th>name</th>
+    <table class="hoverable">
+    <tbody>
+      <th>ID</th><th>email</th><th>name</th><th>active</th><th>admin</th>
     {% for user in users %}
       <tr>
-      </tr>
-      <tr>
         {% with link=request.url_for('admin:user', user_id=user.id) %}
-        <td><a href="{{ link }}">{{ user.id }}</a></td>
-        <td>{% if user.is_active %}<span class="check"></span>{% endif %}</td>
-        <td>{% if user.is_superuser %}<span class="check"></span>{% endif %}</td>
-        <td><a href="{{ link }}">{{ user.email }}</a></td>
-        <td><a href="{{ link }}">{{ user.full_name }}</a></td>
+        <td data-label="ID"><a href="{{ link }}">{{ user.id }}</a></td>
+        <td data-label="email"><a href="{{ link }}"><span alt="{{ user.email }}" title="{{ user.email }}">{{ user.email }}</span></a></td>
+        <td data-label="email"><a href="{{ link }}"><span alt="{{ user.full_name }}" title="{{ user.full_name }}">{{ user.full_name }}</span></a></td>
+        <td data-label="active">{% if user.is_active %}<span class="icon-check-square"></span>{% endif %}</td>
+        <td data-label="admin">{% if user.is_superuser %}<span class="icon-check-square"></span>{% endif %}</td>
         {% endwith %}
       </tr>
     {% endfor %}
+    </tbody>
     </table>
+    </div>
   </div>
 
 {% endblock content %}

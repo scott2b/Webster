@@ -1,27 +1,57 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-	<title>{{ title }}</title>
-    <link href="/static/site.css" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+<link href="/static/site.css" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+
 <body>
 
-{% include "_messages.html" %}
+{# navigation bar fixes required because mini.css menu drawer does not work
+   correctly in a header context #}
 
-<section id="page">
-
-  <div class="left-sidebar"></div>
-  <div class="right-sidebar"></div>
-
+<div class="navbar" id="primary-nav">
+  <a href="/"><img src="/static/logo.png" class="logo" style="width: 200px; float: left;"/></a>
+  <a href="javascript:void(0);" class="icon" onclick="responsiveNavbar()">
+    <i class="fa fa-bars"></i>
+  </a>
   {% include "_nav.html" %}
+</div>
 
-  <div class="content">
-  {% block content %}
-  {% endblock content %}
+<script>
+function responsiveNavbar() {
+  var nav = document.getElementById("primary-nav");
+  if (nav.className === "navbar") {
+      nav.className += " responsive-nav";
+  } else {
+      nav.className = "navbar";
+  }
+}
+</script>
+
+
+<div class="container">
+
+  <div class="row">
+      <div class="col-md-2 left-sidebar"></div>
+
+      <div class="col-md-7">
+          {% include "_messages.html" %}
+          {% block content %}
+          {% endblock content %}
+      </div>
+
+      <div class="col-md-3 right-sidebar"></div>
   </div>
 
-</section>
+</div> <!-- .container -->
+
+<footer class="sticky">
+  <p>{{ request.state.settings.PROJECT_NAME }}</p>
+</footer>
 
 </body>
 </html>
-

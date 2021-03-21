@@ -1,6 +1,7 @@
 alembic.ini
 
 app/custom/
+static/logo.png
 
 # sqlite
 *.db

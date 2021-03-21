@@ -1,35 +1,67 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="header">
-    <h1>{{ project_name }}</h1>
-    {% if request.user.is_authenticated %}
-    <p>Hello, {{ request.user.full_name }}</p>
-    {% else %}
-    <p>Please sign in</p>
-    {% endif %}
 
-    {% if request.user.is_authenticated %}
-    <h2><a href="{{ request.url_for('user_profile') }}">User profile</a></h2>
-    <h2><a href="{{ request.url_for('apps') }}">API client apps</a></h2>
-    {% endif %}
+  {% if request.user.is_authenticated %}
+  <div class="row">
 
-    <h2><a href="{{ request.url_for('docs') }}">User documentation</a></h2>
-    <h2><a href="{{ request.url_for('api_docs') }}" target="api_docs">API reference</a></h2>
+    <div class="card">
+      <div class="section dark">
+        <a href="{{ request.url_for('user_profile') }}">User profile</a>
+      </div>
+      <div class="section">Manage your user information and password.</div>
+    </div>
+
+    <div class="card">
+      <div class="section dark">
+        <a href="{{ request.url_for('apps') }}">API client apps</a>
+      </div>
+      <div class="section">
+        Create and manage API client application credentials.
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+
+  <div class="row">
+
+    <div class="card">
+      <div class="section dark">
+        <a href="{{ request.url_for('docs') }}">User documentation</a>
+      </div>
+      <div class="section">
+        Using API client libraries.
+        <br/>
+        <br/>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section dark">
+        <a href="{{request.url_for('api_docs')}}" target="api_docs">API reference<sup><span class="icon-link"></span></sup></a>
+      </div>
+      <div class="section">
+         {{ request.state.settings.PROJECT_NAME }} web API reference documents.
+      </div>
+    </div>
 
   </div>
 
-    {% if not request.user.is_authenticated %}
-    <h2>Login</h2>
-      <div>
-      <form method="POST" action="/auth/login?next=/">
+  {% if not request.user.is_authenticated %}
+  <div class="row">
+    <div class="col-md-12">
+    <form method="POST" action="/auth/login?next=/">
+      <fieldset class="input-group vertical">
+      <legend>Login</legend>
         {% with form=login_form %}
           {% include "forms/login.html" %}
         {% endwith %}
-        <input type="submit" value="login" name="login-form"/>
-      </form>
-      </div>
-    {% endif %}
+      <input type="submit" value="login" name="login-form"/>
+      </fieldset>
+    </form>
+    </div>
   </div>
+  {% endif %}
 
 {% endblock content %}

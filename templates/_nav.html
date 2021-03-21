@@ -1,22 +1,20 @@
-  <div class="nav">
-    <ul>
-    <li {% if request.url==request.url_for('home') %}class="active"{% endif %}><a href="{{ request.url_for('home') }}">Home</a></li>
+    <a href="{{ request.url_for('home') }}" class="button">Home</a>
 
     {% if request.user.is_authenticated %}
-        <li {% if request.url==request.url_for('user_profile') %}class="active"{% endif %}><a href="{{ request.url_for('user_profile') }}">Profile</a></li>
-        <li {% if request.url==request.url_for('apps') %}class="active"{% endif %}><a href="{{ request.url_for('apps') }}">Apps</a></li>
+        <a href="{{ request.url_for('user_profile') }}" class="button">Profile</a>
+        <a href="{{ request.url_for('apps') }}" class="button">Apps</a>
     {% endif %}
-        <li><a href="{{request.url_for('docs')}}">Docs</a></li>
-        <li><a href="{{request.url_for('api_docs')}}" target="api_docs">API</a></li>
+        <a href="{{request.url_for('docs')}}" class="button">Docs</a>
+        <a href="{{request.url_for('api_docs')}}" target="api_docs" class="button">API<sup><span class="icon-link"></span></sup></a>
 
     {% if request.user.is_authenticated %}
-        <li><a href="{{ request.url_for('auth:logout') }}">Sign out</a></li>
+        <a href="{{ request.url_for('auth:logout') }}" class="button">Sign out 
+          <span class="icon-user" alt="signed in as {{ request.user.full_name }}" title="signed in as {{ request.user.full_name }}"></span></span>
+        </a>
         {% else %}
-        <li {% if request.url==request.url_for('auth:login') %}class="active"{% endif %}><a href="/auth/login">Sign in</a></li>
+        <a href="/auth/login" class="button">Sign in</a>
     {% endif %}
 
     {% if request.user.is_superuser %}
-      <li {% if request.url==request.url_for('admin:home') %}class="active"{% endif %}><a href="{{ request.url_for('admin:home') }}">Admin</a></li>
-     {% endif %}
-     </ul>
-  </div>
+      <a href="{{ request.url_for('admin:home') }}" class="button">Admin</a>
+    {% endif %}

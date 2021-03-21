@@ -43,9 +43,15 @@ class User(base.ModelBase, base.DataModel):
         else:
             return False
 
-    def set_password(self, password, db):
+    def set_password(self, password, db=None):
+        """TODO: Can we add dependency injenction instrumentation to tools so
+        we don't need this janky db session handling?
+        """
         self.hashed_password = get_password_hash(password)
-        self.save(db=db)
+        if db:
+            self.save(db=db)
+        else:
+            self.save()
 
 
 class UserManager(base.CRUDManager[User]):

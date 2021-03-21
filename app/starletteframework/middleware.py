@@ -22,6 +22,14 @@ class CustomMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class ProjectMiddleware(BaseHTTPMiddleware):
+
+    async def dispatch(self, request, call_next):
+        request.state.settings = settings
+        response = await call_next(request)
+        return response
+
+
 def setup_middleware(app):
     if settings.ALLOWED_HOSTS:
         app.add_middleware(
@@ -36,6 +44,7 @@ def setup_middleware(app):
             allow_methods=["*"],
             allow_headers=["*"],
         )
+    app.add_middleware(ProjectMiddleware)
     app.add_middleware(
         AuthenticationMiddleware,
         backend=backends.SessionAuthBackend())

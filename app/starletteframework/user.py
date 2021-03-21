@@ -1,7 +1,6 @@
 from starlette.authentication import requires
 from starlette.responses import RedirectResponse
 from .. import messages
-from ..config import settings
 from ..forms import UserForm, PasswordForm, LoginForm
 from .templates import render
 
@@ -10,7 +9,6 @@ async def homepage(request):
     data = await request.form()
     login_form = LoginForm(request, meta={ 'csrf_context': request.session })
     return render('home.html', {
-        'project_name': settings.PROJECT_NAME,
         'login_form': login_form,
     })
 
