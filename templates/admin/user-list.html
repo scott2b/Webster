@@ -31,11 +31,11 @@
     {% for user in users %}
       <tr>
         {% with link=request.url_for('admin:user', user_id=user.id) %}
-        <td data-label="ID"><a href="{{ link }}">{{ user.id }}</a></td>
-        <td data-label="email"><a href="{{ link }}"><span alt="{{ user.email }}" title="{{ user.email }}">{{ user.email }}</span></a></td>
-        <td data-label="email"><a href="{{ link }}"><span alt="{{ user.full_name }}" title="{{ user.full_name }}">{{ user.full_name }}</span></a></td>
-        <td data-label="active">{% if user.is_active %}<span class="icon-check-square"></span>{% endif %}</td>
-        <td data-label="admin">{% if user.is_superuser %}<span class="icon-check-square"></span>{% endif %}</td>
+        <td data-label="ID"><a href="{{ link }}"><span alt="{{ user.id }}" data-tippy-content="{{ user.id }}">{{ user.id }}</span></a></td>
+        <td data-label="email"><a href="{{ link }}"><span alt="{{ user.email }}" data-tippy-content="{{ user.email }}">{{ user.email }}</span></a></td>
+        <td data-label="email"><a href="{{ link }}"><span alt="{{ user.full_name }}" data-tippy-content="{{ user.full_name }}">{{ user.full_name }}</span></a></td>
+        <td data-label="active">{% if user.is_active %}<span class="icon-check-square" alt="active: {{ user.is_active }}" data-tippy-content="active: {{ user.is_active }}"></span>{% endif %}</td>
+        <td data-label="admin">{% if user.is_superuser %}<span class="icon-check-square" alt="admin: {{ user.is_superuser }}" data-tippy-content="admin: {{ user.is_superuser }}"></span>{% endif %}</td>
         {% endwith %}
       </tr>
     {% endfor %}
@@ -43,5 +43,9 @@
     </table>
     </div>
   </div>
+
+  <script>
+    tippy('td span');
+  </script>
 
 {% endblock content %}
