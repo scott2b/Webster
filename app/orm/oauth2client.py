@@ -23,10 +23,7 @@ class InvalidOAuth2Client(Exception):
 
 @dataclass
 class OAuth2Client(base.ModelBase, base.DataModel):
-    """OAuth2 API Client model.
-
-    TODO: user should be non-nullable
-    """
+    """OAuth2 API Client model."""
 
     __tablename__ = 'oauth2_clients'
     __table_args__ = (
