@@ -3,7 +3,7 @@ import copy
 from dataclasses import dataclass
 from typing import Optional
 from dependency_injector.wiring import Closing, Provide
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, JSON
 from sqlalchemy.orm import Session
 from sqlalchemy import exc
 from . import base
@@ -26,6 +26,7 @@ class User(base.ModelBase, base.DataModel):
     hashed_password:str = Column(String, nullable=False)
     is_active:bool = Column(Boolean(), default=True)
     is_superuser:bool = Column(Boolean(), default=False)
+    data:dict = Column(JSON(), nullable=True)
 
     @property
     def is_authenticated(self):

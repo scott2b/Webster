@@ -122,6 +122,12 @@ class CRUDManager(Generic[ModelType]):
         """
         return db.query(self.model).offset(skip).limit(limit).all()
 
+    def query(self, *, db:Session = Closing[Provide[Container.closed_db]]
+        ) -> List[ModelType]:
+        """Get a query of this model type
+        """
+        return db.query(self.model)
+
     def create(self, properties,
             db:Session=Closing[Provide[Container.closed_db]]) -> ModelType:
         obj = self.model(**properties)
