@@ -1,3 +1,4 @@
+import copy
 import datetime
 from starlette.authentication import AuthenticationBackend, AuthCredentials
 from ..orm import oauth2token
@@ -13,6 +14,15 @@ class SessionAuthBackend(AuthenticationBackend):
             creds = ['app_auth']
             if user.is_superuser:
                 creds.append('admin_auth')
+            if 'asUser' in user.data:
+                if request.url.path == '/auth/logout':
+                    data = copy.copy(user.data)
+                    del data['asUser']
+                    user.data = data
+                    user.save() 
+                else:
+                    spoof_user = User.objects.get_by_email(user.data['asUser'])
+                    return AuthCredentials(creds), spoof_user
             return AuthCredentials(creds), user
         if request.headers.get('authorization'):
             bearer = request.headers['authorization'].split()
