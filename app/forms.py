@@ -11,7 +11,7 @@ import json
 
 class JSONField(fields.StringField):
     def _value(self):
-        return json.dumps(self.data) if self.data else ''
+        return json.dumps(self.data) if self.data else '{}'
 
     def process_formdata(self, valuelist):
         if valuelist:
@@ -83,7 +83,7 @@ class PublicUserForm(CSRFForm):
 class AdminUserForm(PublicUserForm):
     is_superuser = BooleanField('Superuser')
     is_active = BooleanField('Active')
-    data = JSONField('Data')
+    user_data = JSONField('Data')
 
 
 def UserForm(request, *args, **kwargs):

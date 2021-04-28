@@ -14,14 +14,14 @@ class SessionAuthBackend(AuthenticationBackend):
             creds = ['app_auth']
             if user.is_superuser:
                 creds.append('admin_auth')
-            if user.data and 'asUser' in user.data:
+            if user.user_data and 'asUser' in user.user_data:
                 if request.url.path == '/auth/logout':
-                    data = copy.copy(user.data)
+                    data = copy.copy(user.user_data)
                     del data['asUser']
-                    user.data = data
+                    user.user_data = data
                     user.save() 
                 else:
-                    spoof_user = User.objects.get_by_email(user.data['asUser'])
+                    spoof_user = User.objects.get_by_email(user.user_data['asUser'])
                     return AuthCredentials(creds), spoof_user
             return AuthCredentials(creds), user
         if request.headers.get('authorization'):
