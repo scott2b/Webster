@@ -14,7 +14,7 @@ class SessionAuthBackend(AuthenticationBackend):
             creds = ['app_auth']
             if user.is_superuser:
                 creds.append('admin_auth')
-            if 'asUser' in user.data:
+            if user.data and 'asUser' in user.data:
                 if request.url.path == '/auth/logout':
                     data = copy.copy(user.data)
                     del data['asUser']
