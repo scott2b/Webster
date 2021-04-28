@@ -26,7 +26,7 @@ class User(base.ModelBase, base.DataModel):
     hashed_password:str = Column(String, nullable=False)
     is_active:bool = Column(Boolean(), default=True)
     is_superuser:bool = Column(Boolean(), default=False)
-    data:dict = Column(JSON(), nullable=True)
+    data:dict = Column(JSON(), default=lambda: {}, nullable=True)
 
     @property
     def is_authenticated(self):
